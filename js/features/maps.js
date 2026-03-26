@@ -41,23 +41,56 @@ export async function removeLocation(name) {
     window.render();
 }
 
+// 🌦️ NOVA FUNÇÃO DE CLIMA: Previsão a cada 3 horas!
 export async function fetchWeather() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
     if (!d.locations || d.locations.length === 0) return alert('Adicione uma cidade primeiro.');
 
     const city = d.locations[0].name.split(',')[0];
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=pt_br`;
+    
+    // Mudamos de "weather" para "forecast"
+    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=pt_br`;
 
     try {
         const res = await fetch(url);
         const data = await res.json();
-        if (data.main) {
-            d.weather = `${Math.round(data.main.temp)}°C, ${data.weather[0].description}`;
+        
+        if (data.list) {
+            // Pega apenas as próximas 24 horas (8 blocos de 3 horas)
+            const proximas24h = data.list.slice(0, 8);
+            
+            // Monta o Carrossel visual de previsão
+            let html = `<div class="flex overflow-x-auto gap-2 py-2 mt-2" style="scrollbar-width: none; -ms-overflow-style: none;">`;
+            
+            proximas24h.forEach(item => {
+                const date = new Date(item.dt * 1000);
+                const hours = date.getHours().toString().padStart(2, '0') + ':00';
+                const temp = Math.round(item.main.temp);
+                const icon = `https://openweathermap.org/img/wn/${item.weather[0].icon}.png`;
+                const desc = item.weather[0].description;
+                
+                html += `
+                    <div class="flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm border border-blue-100/50 rounded-lg p-2 min-w-[65px] shrink-0">
+                        <span class="text-[9px] font-bold text-slate-500">${hours}</span>
+                        <img src="${icon}" alt="${desc}" title="${desc}" class="w-8 h-8 drop-shadow-sm -my-1">
+                        <span class="text-[11px] font-bold text-slate-800">${temp}°</span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+
+            // Salva o carrossel no banco para ser renderizado na tela do dia
+            d.weather = html;
             await saveData();
             window.render();
+        } else {
+            alert('Não foi possível carregar a previsão. Verifique se a cidade está correta.');
         }
-    } catch (e) { console.error('Erro clima:', e); }
+    } catch (e) { 
+        console.error('Erro clima:', e); 
+        alert('Erro ao conectar com o servidor de clima.');
+    }
 }
 
 export function openFullDayRoute() {
@@ -71,7 +104,7 @@ export function openFullDayRoute() {
     const destination = waypoints.pop();
     const wpString = waypoints.length > 0 ? `&waypoints=${waypoints.map(encodeURIComponent).join('|')}` : '';
     
-    // CORREÇÃO: URL oficial do Google Maps Directions
+    // CORREÇÃO: URL oficial de rotas do Google
     const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${wpString}&travelmode=walking`;
     window.open(url, '_blank');
 }
@@ -81,7 +114,7 @@ export function initOriginAutocomplete(id) {
     const input = document.getElementById(`origin-${id}`);
     if (input && !input.dataset.autocompleteBound) {
         new google.maps.places.Autocomplete(input);
-        input.dataset.autocompleteBound = "true"; // Evita rebinding infinito
+        input.dataset.autocompleteBound = "true";
     }
 }
 
@@ -99,11 +132,9 @@ export function calcInlineRoute(id) {
     const frame = document.getElementById(`map-frame-${id}`);
     const container = document.getElementById(`map-container-${id}`);
     
-    // CORREÇÃO: URL Embed API correta
+    // CORREÇÃO: API Embed correta para iframe
     const apiKey = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]').src.match(/key=([^&]+)/)[1];
-    const baseUrl = "https://www.google.com/maps/embed/v1/directions";
-    
-    frame.src = `${baseUrl}?key=${apiKey}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&mode=${mode.toLowerCase()}`;
+    frame.src = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&mode=${mode.toLowerCase()}`;
     container.classList.remove('hidden');
 }
 
@@ -116,7 +147,7 @@ export function openGPSRoute(id) {
     const modeMap = { 'd': 'driving', 't': 'transit', 'w': 'walking' };
     const mode = modeMap[currentInlineModes[id] || 'd'];
     
-    // CORREÇÃO: Sintaxe de Template String e URL oficial
+    // CORREÇÃO: URL oficial de rotas do Google
     const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&travelmode=${mode}`;
     window.open(url, '_blank');
 }
