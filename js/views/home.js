@@ -49,20 +49,41 @@ export function renderHome() {
 }
 
 export async function createTrip() {
-    const name = prompt('Nome da Viagem:');
-    if (!name) return;
-    const newTrip = {
-        id: randomId(),
-        name: name,
-        days: [],
-        hotels: [],
-        initialCosts: [],
-        checklist: [],
-        rates: { USD: 0, EUR: 0, GBP: 0 }
-    };
-    appData.trips.push(newTrip);
-    await saveData(); // Salva na nuvem
-    render();
+    // 1. Busca os elementos da tela 'new'
+    const nameEl = document.getElementById('newName');
+    const destEl = document.getElementById('newDest');
+    const startEl = document.getElementById('newStart');
+    const endEl = document.getElementById('newEnd');
+
+    // 2. Se os inputs existirem (estamos na tela correta)
+    if (nameEl && destEl) {
+        const name = nameEl.value;
+        const destination = destEl.value;
+        const startDate = startEl.value;
+        const endDate = endEl.value;
+
+        if (!name || !destination) return alert('Por favor, preencha o Nome e o Destino!');
+
+        const newTrip = {
+            id: randomId(),
+            name: name,
+            destination: destination, // Agora salva o local
+            startDate: startDate,     // Agora salva o início
+            endDate: endDate,         // Agora salva o fim
+            days: [],
+            hotels: [],
+            initialCosts: [],
+            checklist: [],
+            rates: { USD: 0, EUR: 0, GBP: 0 }
+        };
+
+        appData.trips.push(newTrip);
+        await saveData();
+        window.goTo('home'); // Volta para a home após criar
+    } else {
+        // Fallback: Se clicar por engano, manda para a tela de formulário
+        window.goTo('new');
+    }
 }
 
 export async function importData(event) {
