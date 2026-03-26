@@ -1,3 +1,4 @@
+// --- INÍCIO DO ARQUIVO transport.js ---
 import { appData, currentState, saveData } from '../store.js';
 
 let transMap, directionsService, directionsRenderer;
@@ -94,7 +95,7 @@ export function addRouteStep(mode = 'walk', time = '', desc = '') {
             </select>
             <div class="flex-1 flex flex-col gap-1">
                 <div class="flex gap-1">
-                    <input type="text" placeholder="Tempo (ex: 15 min)" value="${time}" class="step-time w-24 p-1.5 border rounded text-[10px] font-mono shadow-inner">
+                    <input type="text" placeholder="Tempo" value="${time}" class="step-time w-24 p-1.5 border rounded text-[10px] font-mono shadow-inner">
                     <input type="text" placeholder="Instrução" value="${desc}" class="step-desc flex-1 p-1.5 border rounded text-xs shadow-inner">
                 </div>
             </div>
@@ -204,3 +205,6 @@ window.calcTransportRoute = calcTransportRoute;
 window.saveTransport = saveTransport;
 window.addRouteStep = addRouteStep;
 window.deleteTransport = deleteTransport;
+
+console.log("Módulo de Transporte carregado com sucesso!");
+// --- FIM DO ARQUIVO transport.js ---
