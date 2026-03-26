@@ -2,137 +2,141 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Planner - Viagem Abril 2026</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-slate-100 font-sans">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magic Planner ✈️</title>
+    
+    <meta name="theme-color" content="#fffef0">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
-    <div class="p-10 text-center">
-        <button onclick="window.openFinanceModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">
-            💰 Abrir Painel Financeiro
-        </button>
-        <button onclick="window.openDocsModal()" class="ml-4 bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-emerald-700 transition">
-            📄 Documentos da Viagem
-        </button>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Amatic+SC:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAtp5jarrnwyy3_JWVfoWGbKlfEd4NjSKk&libraries=places&language=pt_BR"></script>
+    
+    <style>
+        /* Garante que os modais comecem escondidos */
+        .modal { display: none !important; }
+        .modal.flex { display: flex !important; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-[#fffef0] text-slate-800 pb-20 select-none">
+
+    <div id="autoSaveIndicator" class="fixed top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg z-50 transition-opacity opacity-0 pointer-events-none">
+        💾 Salvo
     </div>
 
-    <div id="financeModal" class="hidden fixed inset-0 bg-slate-900/70 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
-            <button onclick="window.closeFinanceModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-2xl transition">&times;</button>
-            
-            <h3 class="text-2xl font-bold mb-4 text-[#0c4a6e] border-b pb-2">Painel Financeiro</h3>
-            
-            <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <h4 class="text-xs font-bold mb-2 text-gray-500 uppercase">Cotação do Câmbio (R$)</h4>
-                <div class="grid grid-cols-3 gap-3">
-                    <div><label class="text-[10px] text-gray-500 font-bold">USD</label><input type="number" id="rateUSD" class="w-full border p-2 rounded text-sm" onchange="window.saveRates()"></div>
-                    <div><label class="text-[10px] text-gray-500 font-bold">EUR</label><input type="number" id="rateEUR" class="w-full border p-2 rounded text-sm" onchange="window.saveRates()"></div>
-                    <div><label class="text-[10px] text-gray-500 font-bold">GBP</label><input type="number" id="rateGBP" class="w-full border p-2 rounded text-sm" onchange="window.saveRates()"></div>
-                </div>
-            </div>
+    <div id="app" class="p-4 max-w-5xl mx-auto min-h-screen"></div>
 
-            <div class="flex border-b mb-4">
-                <button id="btn-tab-report" onclick="window.switchFinanceTab('report')" class="flex-1 py-2 font-bold text-sm border-b-2 border-blue-600 text-blue-600">Visão Geral</button>
-                <button id="btn-tab-monthly" onclick="window.switchFinanceTab('monthly')" class="flex-1 py-2 font-bold text-sm border-b-2 border-transparent text-gray-500">Por Mês</button>
-                <button id="btn-tab-costs" onclick="window.switchFinanceTab('costs')" class="flex-1 py-2 font-bold text-sm border-b-2 border-transparent text-gray-500">Custos Iniciais</button>
-            </div>
+    <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#d4af37] flex justify-around p-3 z-40 hidden shadow-[0_-4px_6_px_-1px_rgba(0,0,0,0.1)]">
+        <button onclick="window.goTo('home')" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition">
+            <span class="text-2xl">🏠</span>
+            <span class="text-[10px] font-bold uppercase tracking-wide">Início</span>
+        </button>
+        <button onclick="window.goTo('trip', currentState.tripId)" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition">
+            <span class="text-2xl">🗺️</span>
+            <span class="text-[10px] font-bold uppercase tracking-wide">Roteiro</span>
+        </button>
+        <button onclick="window.openFinanceModal()" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition">
+            <span class="text-2xl">💰</span>
+            <span class="text-[10px] font-bold uppercase tracking-wide">Finanças</span>
+        </button>
+    </nav>
 
-            <div id="tab-report">
-                <h2 id="reportGrandTotal" class="text-center text-xl font-bold text-red-600 mb-4 bg-red-50 p-2 rounded-lg border border-red-100">R$ 0,00</h2>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-1">Pagos</h4>
-                        <div id="reportSunkCosts" class="grid grid-cols-2 gap-1 text-xs text-emerald-700"></div>
-                    </div>
-                    <div>
-                        <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-1">A Pagar</h4>
-                        <div id="reportVariableCosts" class="grid grid-cols-2 gap-1 text-xs text-amber-700"></div>
-                    </div>
+    <div id="dayExtraModal" class="modal items-center justify-center z-50">
+        <div class="modal-content w-full max-w-md bg-white rounded-lg shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">💰 Gasto Extra</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input id="extraDesc" class="w-full p-2 border rounded" placeholder="Descrição">
+                <div class="flex gap-2">
+                    <input id="extraVal" type="number" class="w-full p-2 border rounded" placeholder="0.00">
+                    <select id="extraCurr" class="w-24 p-2 border rounded bg-white">
+                        <option value="GBP">£</option><option value="EUR">€</option>
+                    </select>
                 </div>
-                <div class="w-full h-48 mb-6">
+                <button onclick="window.saveDayExtra()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="attractionModal" class="modal items-center justify-center z-50">
+        <div class="modal-content w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2 sticky top-0 bg-white z-10">
+                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">Detalhes da Atração</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input id="attName" class="p-3 border rounded border-gray-300" placeholder="Nome">
+                <button onclick="window.saveAttraction()" class="bg-blue-600 text-white p-3 rounded font-bold">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="financeModal" class="modal items-center justify-center z-50">
+        <div class="modal-content w-full max-w-2xl h-[90vh] flex flex-col bg-gray-50 p-0 overflow-hidden">
+            <div class="bg-white p-4 border-b flex justify-between items-center">
+                <h3 class="font-magic text-xl text-[#0c4a6e] font-bold">Painel Financeiro 💰</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 text-xl font-bold">&times;</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="tab-report" class="space-y-4">
+                    <h2 id="reportGrandTotal" class="text-center text-xl font-bold text-red-600">R$ 0,00</h2>
                     <canvas id="financeChart"></canvas>
                 </div>
             </div>
-
-            <div id="tab-costs" class="hidden">
-                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
-                    <div class="grid grid-cols-2 gap-2 mb-2">
-                        <input type="text" id="initType" class="border p-2 rounded text-sm" placeholder="Ex: Voo, Seguro..." list="costTypes">
-                        <input type="text" id="initDesc" class="border p-2 rounded text-sm" placeholder="Descrição">
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 mb-2">
-                        <input type="number" id="initVal" class="border p-2 rounded text-sm" placeholder="Valor">
-                        <select id="initCurr" class="border p-2 rounded text-sm"><option>BRL</option><option>EUR</option><option>GBP</option></select>
-                        <input type="date" id="initDate" class="border p-2 rounded text-sm">
-                    </div>
-                    <button onclick="window.addInitialCost()" class="w-full bg-[#0c4a6e] text-white p-2 rounded font-bold shadow hover:bg-[#072c42]">➕ Adicionar Custo</button>
-                </div>
-                <ul id="initialCostsList" class="space-y-2 max-h-40 overflow-y-auto"></ul>
-            </div>
         </div>
     </div>
 
-    <div id="docsModal" class="hidden fixed inset-0 bg-slate-900/70 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl w-full max-w-md p-8 relative text-center shadow-2xl">
-            <button onclick="window.closeDocsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl">&times;</button>
-            <div class="mb-4 text-slate-300">
-                <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+    <div id="documentsModal" class="modal items-center justify-center z-50">
+        <div class="modal-content w-full max-w-lg bg-white rounded-lg shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">📂 Documentos</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
             </div>
-            <h3 class="text-xl font-bold text-[#0c4a6e] mb-2">DOCUMENTOS DA VIAGEM</h3>
-            <p class="text-sm text-gray-600 mb-6">A galeria de documentos (vouchers e PDFs) está sendo adaptada para salvar diretamente no banco de dados. Em breve!</p>
-            <button onclick="window.closeDocsModal()" class="w-full bg-blue-100 text-blue-700 py-3 rounded-lg font-bold hover:bg-blue-200 transition">Entendi</button>
+            <p class="text-sm mb-4">Em breve você poderá anexar seus vouchers de Londres e Paris!</p>
+            <button onclick="window.closeModals()" class="w-full bg-blue-100 text-blue-700 py-3 rounded font-bold">Entendi</button>
         </div>
     </div>
 
-    <script type="module" src="./js/finance.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script type="module" src="js/main.js"></script>
+
     <script>
-    // FUNÇÕES GLOBAIS DE CONTROLE DE INTERFACE
-    // Essas funções ficam aqui para garantir que os botões do HTML sempre as encontrem.
+        window.closeModals = function() {
+            const modalIds = [
+                'dayExtraModal', 'attractionModal', 'transportModal', 
+                'hotelModal', 'cityModal', 'radarModal', 
+                'financeModal', 'documentsModal', 'checklistModal'
+            ];
+            modalIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('flex');
+            });
+        };
 
-    window.openFinanceModal = function() {
-        const modal = document.getElementById('financeModal');
-        if (modal) modal.classList.remove('hidden');
-        // Tenta rodar a lógica de dados se o módulo de finanças estiver carregado
-        if (window.renderFinanceData) window.renderFinanceData();
-    };
+        window.openFinanceModal = function() {
+            const el = document.getElementById('financeModal');
+            if (el) el.classList.add('flex');
+        };
 
-    window.closeFinanceModal = function() {
-        const modal = document.getElementById('financeModal');
-        if (modal) modal.classList.add('hidden');
-    };
+        window.openDocsModal = function() {
+            const el = document.getElementById('documentsModal');
+            if (el) el.classList.add('flex');
+        };
 
-    window.openDocsModal = function() {
-        const modal = document.getElementById('docsModal');
-        if (modal) modal.classList.remove('hidden');
-    };
-
-    window.closeDocsModal = function() {
-        const modal = document.getElementById('docsModal');
-        if (modal) modal.classList.add('hidden');
-    };
-
-    // Função genérica para trocar abas
-    window.switchFinanceTab = function(tab) {
-        ['report', 'monthly', 'costs'].forEach(t => {
-            const content = document.getElementById(`tab-${t}`);
-            if (content) content.classList.add('hidden');
-            const btn = document.getElementById(`btn-tab-${t}`);
-            if (btn) {
-                btn.classList.remove('border-blue-600', 'text-blue-600');
-                btn.classList.add('border-transparent', 'text-gray-500');
-            }
-        });
-        
-        const activeContent = document.getElementById(`tab-${tab}`);
-        if (activeContent) activeContent.classList.remove('hidden');
-        const activeBtn = document.getElementById(`btn-tab-${tab}`);
-        if (activeBtn) {
-            activeBtn.classList.add('border-blue-600', 'text-blue-600');
-            activeBtn.classList.remove('border-transparent', 'text-gray-500');
-        }
-    };
-</script>
+        // Redireciona chamadas para o módulo principal
+        window.goTo = function(a, b) { if(window.mainGoTo) window.mainGoTo(a, b); };
+    </script>
 </body>
 </html>
