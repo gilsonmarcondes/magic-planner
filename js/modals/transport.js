@@ -163,6 +163,7 @@ export async function saveTransport() {
 
     const newTrans = {
         id: transId || Math.random().toString(36).substr(2, 9),
+        title: document.getElementById('transRef')?.value || 'Transporte', // Usaremos o campo de REF como título por enquanto ou adicione um campo novo
         type: document.getElementById('transType')?.value || 'flight',
         ref: document.getElementById('transRef')?.value.toUpperCase() || '',
         origin: document.getElementById('transOrigin')?.value || '',

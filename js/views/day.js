@@ -18,7 +18,7 @@ export function renderDay(container, tripId, dayId) {
     // --- Mapa do Maroto ---
     let marauderMapHtml = '';
     if (d.mapUrl) {
-        const embedUrl = d.mapUrl.includes('google.com/maps/d/')
+        const embedUrl = d.mapUrl.includes('google.com/maps/d')
             ? d.mapUrl.replace(/\/viewer\?/, '/embed?').replace(/\/edit\?/, '/embed?')
             : d.mapUrl;
         marauderMapHtml = `
@@ -28,9 +28,9 @@ export function renderDay(container, tripId, dayId) {
                     <span id="arrow-map-${d.id}" class="text-xl font-bold">▼</span>
                 </div>
                 <div id="map-container-${d.id}" class="hidden">
-                    <iframe src="${embedUrl}" width="100%" height="550" frameborder="0" allowfullscreen></iframe>
+                    <iframe src="${embedUrl}" width="100%" height="550" frameborder="0" allowfullscreen shadow-inner></iframe>
                     <div class="bg-gray-50 p-2 text-right border-t">
-                        <button onclick="window.setMarauderMap('${d.id}')" class="text-xs text-blue-600 underline">✏️ Editar Link</button>
+                        <button onclick="window.setMarauderMap('${d.id}')" class="text-xs text-blue-600 underline font-bold">✏️ Editar Link</button>
                     </div>
                 </div>
             </div>`;
@@ -45,9 +45,9 @@ export function renderDay(container, tripId, dayId) {
     let hotelsHtml = '';
     if (d.date) {
         t.hotels.forEach(h => {
-            if      (h.checkIn  === d.date) hotelsHtml += `<div class="bg-green-100 border-l-4 border-green-500 text-green-800 p-2 mb-2 rounded flex justify-between items-center text-xs font-bold"><span>🛎️ Check-in: ${h.name}</span></div>`;
-            else if (h.checkOut === d.date) hotelsHtml += `<div class="bg-orange-100 border-l-4 border-orange-500 text-orange-800 p-2 mb-2 rounded flex justify-between items-center text-xs font-bold"><span>👋 Check-out: ${h.name}</span></div>`;
-            else if (d.date > h.checkIn && d.date < h.checkOut) hotelsHtml += `<div class="bg-blue-100 border-l-4 border-blue-500 text-blue-800 p-2 mb-2 rounded flex justify-between items-center text-xs font-bold"><span>🛏️ Estadia: ${h.name}</span></div>`;
+            if      (h.checkIn  === d.date) hotelsHtml += `<div class="bg-green-100 border-l-4 border-green-500 text-green-800 p-2 mb-2 rounded text-xs font-bold shadow-sm">🛎️ Check-in: ${h.name}</div>`;
+            else if (h.checkOut === d.date) hotelsHtml += `<div class="bg-orange-100 border-l-4 border-orange-500 text-orange-800 p-2 mb-2 rounded text-xs font-bold shadow-sm">👋 Check-out: ${h.name}</div>`;
+            else if (d.date > h.checkIn && d.date < h.checkOut) hotelsHtml += `<div class="bg-blue-100 border-l-4 border-blue-500 text-blue-800 p-2 mb-2 rounded text-xs font-bold shadow-sm">🛏️ Estadia: ${h.name}</div>`;
         });
     }
 
@@ -61,11 +61,11 @@ export function renderDay(container, tripId, dayId) {
                         <span class="text-[10px] font-bold text-gray-400 uppercase">Cidades:</span>
                         <button onclick="window.openCitySearch()" class="text-[10px] bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 font-bold uppercase">Adicionar</button>
                     </div>
-                    <div class="flex flex-wrap gap-2 mb-3">
+                    <div class="flex flex-wrap gap-2 mb-3 font-bold uppercase">
                         ${d.locations.map(l => `
-                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-xs font-bold border">
+                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-[10px] border">
                                 ${l.name}
-                                <button onclick="window.removeLocation('${l.name}')" class="text-red-400 font-bold text-lg leading-none">&times;</button>
+                                <button onclick="window.removeLocation('${l.name}')" class="text-red-400 font-bold">×</button>
                             </span>`).join('')}
                     </div>
                     <div class="border-t pt-3">
@@ -76,58 +76,57 @@ export function renderDay(container, tripId, dayId) {
             </details>
         </div>`;
 
-    // --- Transportes (BILHETE TURBINADO) ---
+    // --- Transportes (BILHETE CORRIGIDO) ---
     const transportHtml = (d.transport || []).map(tr => {
         const typeIcons = { flight: '✈️', train: '🚆', bus: '🚌', car: '🚗' };
         const icon = typeIcons[tr.type] || '🎫';
         
-        // Formatação de horários para o título
-        const dep = tr.depTime ? tr.depTime.split('T')[1] : '--:--';
-        const arr = tr.arrTime ? tr.arrTime.split('T')[1] : '--:--';
+        // CORREÇÃO: Título inteligente para evitar UNDEFINED
+        const displayTitle = (tr.origin && tr.dest) ? `${tr.origin} ➔ ${tr.dest}` : (tr.ref || 'Novo Bilhete');
+        const displayCost = !isNaN(parseFloat(tr.cost)) ? parseFloat(tr.cost).toFixed(2) : '0.00';
 
         return `
-        <div id="attraction-${tr.id}" class="card p-4 border-l-8 border-l-blue-500 relative mb-4 attraction-item shadow-md bg-blue-50/50" data-id="${tr.id}">
+        <div id="attraction-${tr.id}" class="card p-4 border-l-8 border-l-blue-500 relative mb-4 attraction-item shadow-md bg-blue-50/50 rounded-lg" data-id="${tr.id}">
             <div class="flex justify-between items-start">
                 <div class="flex gap-2 items-start w-full">
                     <div class="pt-1 shrink-0">
                         <input type="checkbox" onclick="event.stopPropagation()" class="route-selector w-5 h-5 accent-blue-600 cursor-pointer" value="${tr.id}">
                     </div>
-                    <div onclick="window.toggleTicketContent('${tr.id}')" class="cursor-pointer flex items-center justify-between w-full">
+                    <div onclick="window.toggleTicketContent('${tr.id}')" class="cursor-pointer flex items-center justify-between w-full pr-2">
                         <div>
                             <h4 class="font-bold text-blue-900 uppercase text-[11px] flex items-center gap-2">
-                                ${icon} ${tr.origin || 'Origem'} ➔ ${tr.dest || 'Destino'}
+                                ${icon} ${displayTitle}
                             </h4>
                             <div class="flex gap-3 mt-1">
-                                <span class="text-[10px] bg-white px-2 py-0.5 rounded border border-blue-200 font-mono text-blue-700">🕒 ${dep} - ${arr}</span>
-                                <span class="text-[10px] font-bold text-blue-800 uppercase tracking-tighter">${tr.ref ? 'REF: ' + tr.ref : ''}</span>
-                                <span class="text-[10px] font-bold text-emerald-600">${tr.currency || 'USD'} ${Number(tr.cost || 0).toFixed(2)} ${tr.paid ? '✅' : '⏳'}</span>
+                                <span class="text-[10px] font-bold text-emerald-600 uppercase font-mono">${tr.currency || 'USD'} ${displayCost} ${tr.paid ? '✅' : '⏳'}</span>
+                                ${tr.ref ? `<span class="text-[9px] font-bold text-blue-400 uppercase">Localizador: ${tr.ref}</span>` : ''}
                             </div>
                         </div>
-                        <span id="arrow-${tr.id}" class="text-blue-400 transition-transform">▼</span>
+                        <span id="arrow-${tr.id}" class="text-blue-400 transition-transform duration-300 transform">▼</span>
                     </div>
                 </div>
-                <div class="flex gap-1 shrink-0 ml-2">
-                    <button onclick="window.openTransportModal('${tr.id}')" class="p-1 hover:bg-white rounded">✏️</button>
-                    <button onclick="window.deleteTransport('${tr.id}')" class="p-1 text-red-400 hover:bg-white rounded">×</button>
+                <div class="flex gap-2 shrink-0 ml-1">
+                    <button onclick="window.openTransportModal('${tr.id}')" class="p-1 hover:bg-white rounded text-blue-600">✏️</button>
+                    <button onclick="window.deleteTransport('${tr.id}')" class="p-1 text-red-400 hover:bg-white rounded font-bold">×</button>
                 </div>
             </div>
             
-            <div id="ticket-content-${tr.id}" class="mt-4 hidden animate-fade-in">
-                <div class="space-y-2 border-l-2 border-dashed border-blue-200 ml-2 pl-4 mb-4">
+            <div id="ticket-content-${tr.id}" class="hidden mt-4 pt-3 border-t border-blue-100">
+                <div class="space-y-2 mb-3 ml-6">
                     ${(tr.steps || []).map(s => {
                         const sIcons = { walk: '🚶', tube: '🚇', train: '🚆', bus: '🚌', car: '🚗', flight: '✈️' };
                         return `
-                        <div class="relative flex items-center gap-2">
-                            <span class="absolute -left-[25px] bg-white rounded-full p-0.5 border border-blue-200 text-[10px]">${sIcons[s.mode] || '📍'}</span>
-                            <span class="text-[10px] font-bold text-blue-900 w-12 font-mono">${s.time || '--:--'}</span>
-                            <span class="text-[10px] text-gray-600">${s.desc}</span>
+                        <div class="text-[11px] text-slate-600 flex items-center gap-2">
+                            <span class="bg-white rounded-full p-0.5 border border-blue-100">${sIcons[s.mode] || '📍'}</span>
+                            <span class="font-bold text-blue-800 w-12 font-mono">${s.time || '--:--'}</span>
+                            <span class="flex-1">${s.desc}</span>
                         </div>`;
                     }).join('')}
                 </div>
 
                 ${tr.notes ? `
-                    <div class="bg-white/80 p-3 rounded-lg border border-blue-100 text-[10px] font-mono text-gray-500 whitespace-pre-wrap leading-relaxed shadow-inner">
-                        <p class="uppercase font-bold text-[8px] text-blue-400 mb-2 border-b border-blue-50 pb-1">📋 Notas Detalhadas</p>
+                    <div class="bg-white/80 p-3 rounded-lg border border-blue-100 text-[10px] font-mono text-gray-500 whitespace-pre-wrap leading-relaxed shadow-inner ml-6">
+                        <p class="uppercase font-bold text-[8px] text-blue-300 mb-2 border-b border-blue-50 pb-1">📋 Texto Original do Mapa</p>
                         ${tr.notes}
                     </div>` : ''}
             </div>
@@ -143,13 +142,13 @@ export function renderDay(container, tripId, dayId) {
         
         if (prio === 'must_see' || prio === 'imperdivel') { 
             cardStyle = 'background-color:#fef3c7; border:1px solid #fcd34d;'; 
-            priorityBadge = '<span class="bg-amber-500 text-white text-[8px] font-bold px-2 py-0.5 rounded ml-2 shadow-sm">🌟 IMPERDÍVEL</span>'; 
+            priorityBadge = '<span class="bg-amber-500 text-white text-[8px] font-bold px-2 py-0.5 rounded ml-2 shadow-sm uppercase">🌟 Imperdível</span>'; 
         } else if (prio === 'photo') { 
             cardStyle = 'background-color:#fdf4ff; border:1px solid #f5d0fe;'; 
-            priorityBadge = '<span class="bg-fuchsia-500 text-white text-[8px] font-bold px-2 py-0.5 rounded ml-2 shadow-sm">📸 SÓ FOTO</span>'; 
+            priorityBadge = '<span class="bg-fuchsia-500 text-white text-[8px] font-bold px-2 py-0.5 rounded ml-2 shadow-sm uppercase">📸 Só Foto</span>'; 
         } else if (prio === 'maybe') { 
             cardStyle = 'background-color:#f1f5f9; border:1px solid #e2e8f0; opacity:0.9;'; 
-            priorityBadge = '<span class="bg-slate-500 text-white text-[8px] font-bold px-2 py-0.5 rounded ml-2">⏳ SE DER</span>'; 
+            priorityBadge = '<span class="bg-slate-500 text-white text-[8px] font-bold px-2 py-0.5 rounded ml-2 uppercase tracking-tighter">⏳ Se Der</span>'; 
         }
 
         const numBadge = a.mapNum ? `<span class="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-sm shrink-0 border border-red-700 mt-1">${a.mapNum}</span>` : '';
@@ -178,10 +177,10 @@ export function renderDay(container, tripId, dayId) {
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <h4 class="font-bold text-lg mt-1 ${a.visited ? 'line-through text-gray-400' : 'text-[#0c4a6e]'} leading-tight">${a.name}</h4>
-                                    <button onclick="window.quickShowHistory('${a.id}')" class="text-[10px] bg-white border border-blue-200 text-blue-600 px-2 py-0.5 rounded-full shadow-sm hover:bg-blue-50">📖 Ler Curiosidades</button>
+                                    <button onclick="window.quickShowHistory('${a.id}')" class="text-[10px] bg-white border border-blue-200 text-blue-600 px-2 py-0.5 rounded-full shadow-sm hover:bg-blue-50">📖 Ler</button>
                                 </div>
                                 ${subHtml}
-                                <p class="text-[10px] text-gray-400 mt-1 flex items-center gap-1 font-mono">🕒 ${a.hours || 'Livre'} | 📍 ${a.address || 'Endereço não definido'}</p>
+                                <p class="text-[10px] text-gray-400 mt-1 font-mono uppercase tracking-tighter">🕒 ${a.hours || 'Livre'} | 📍 ${a.address || 'Endereço não definido'}</p>
                             </div>
                         </div>
                         <div class="flex flex-col items-end gap-1 shrink-0 ml-1">
@@ -189,7 +188,7 @@ export function renderDay(container, tripId, dayId) {
                                 <button onclick="window.openAttractionModal('${a.id}')" class="p-1 hover:bg-gray-100 rounded">✏️</button>
                                 <button onclick="window.deleteAttraction('${a.id}')" class="p-1 text-red-400 hover:bg-gray-100 rounded">×</button>
                             </div>
-                            <button onclick="window.toggleVisited('${a.id}')" class="text-[10px] font-bold mt-1 ${a.visited ? 'text-green-700 bg-green-200 border-green-300' : 'text-gray-500 bg-white border-gray-200'} px-2 py-1 rounded-full border shadow-sm transition-colors">
+                            <button onclick="window.toggleVisited('${a.id}')" class="text-[10px] font-bold mt-1 ${a.visited ? 'text-green-700 bg-green-200 border-green-300' : 'text-gray-500 bg-white border-gray-200'} px-2 py-1 rounded-full border shadow-sm">
                                 ${a.visited ? '✅ Feito' : '◻ A Fazer'}
                             </button>
                         </div>
@@ -198,23 +197,23 @@ export function renderDay(container, tripId, dayId) {
             </div>
             
             <details class="text-sm mt-2 ml-8 border-t border-dashed pt-2 border-gray-100">
-                <summary class="font-bold text-gray-400 cursor-pointer text-[10px] uppercase tracking-widest">Informações & Rota</summary>
+                <summary class="font-bold text-gray-400 cursor-pointer text-[10px] uppercase tracking-widest">Detalhes & GPS</summary>
                 <div class="mt-2 p-3 bg-gray-50/50 rounded-lg prose prose-sm max-w-none text-slate-600">${a.desc || 'Sem descrição adicional...'}</div>
                 
                 <div class="mt-4 p-3 bg-white border rounded-xl shadow-inner">
-                    <p class="text-[10px] font-bold text-blue-800 uppercase mb-3">🧭 Como Chegar</p>
+                    <p class="text-[10px] font-bold text-blue-800 uppercase mb-3">🧭 Traçar Rota</p>
                     <div class="mb-2">
-                        <button id="gps-btn-${a.id}" onclick="window.useMyLocation('${a.id}')" class="w-full bg-blue-50 text-blue-700 py-2 rounded-lg border border-blue-200 text-xs mb-2 font-bold hover:bg-blue-100 transition">📍 Usar minha localização</button>
-                        <input id="origin-${a.id}" placeholder="Origem: Estação, Hotel..." class="w-full p-2 border rounded-lg text-xs font-mono shadow-sm mb-3" onfocus="window.initOriginAutocomplete('${a.id}')">
+                        <button id="gps-btn-${a.id}" onclick="window.useMyLocation('${a.id}')" class="w-full bg-blue-50 text-blue-700 py-2 rounded-lg border border-blue-200 text-xs mb-2 font-bold">📍 Minha Localização</button>
+                        <input id="origin-${a.id}" placeholder="Ou digite a origem..." class="w-full p-2 border rounded-lg text-xs font-mono shadow-sm mb-3" onfocus="window.initOriginAutocomplete('${a.id}')">
                     </div>
                     <div class="flex justify-between gap-1 mb-3">
-                        <button id="mode-d-${a.id}" onclick="window.setInlineMode('${a.id}','d')" class="flex-1 border rounded-lg p-2 text-xs font-bold transition-all shadow-sm">🚗 Carro</button>
-                        <button id="mode-t-${a.id}" onclick="window.setInlineMode('${a.id}','t')" class="flex-1 border rounded-lg p-2 text-xs font-bold transition-all shadow-sm">🚌 Bus/Metrô</button>
-                        <button id="mode-w-${a.id}" onclick="window.setInlineMode('${a.id}','w')" class="flex-1 border rounded-lg p-2 text-xs font-bold transition-all shadow-sm">🚶 A pé</button>
+                        <button id="mode-d-${a.id}" onclick="window.setInlineMode('${a.id}','d')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm">🚗 Carro</button>
+                        <button id="mode-t-${a.id}" onclick="window.setInlineMode('${a.id}','t')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm">🚌 Transp.</button>
+                        <button id="mode-w-${a.id}" onclick="window.setInlineMode('${a.id}','w')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm">🚶 A pé</button>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="window.calcInlineRoute('${a.id}')" class="bg-indigo-600 text-white text-[10px] font-bold py-2 px-4 rounded-lg flex-1 shadow-md hover:bg-indigo-700">Ver Mapa</button>
-                        <button onclick="window.openGPSRoute('${a.id}')" class="bg-emerald-600 text-white text-[10px] font-bold py-2 px-4 rounded-lg flex-1 shadow-md hover:bg-emerald-700">Abrir GPS</button>
+                        <button onclick="window.calcInlineRoute('${a.id}')" class="bg-indigo-600 text-white text-[10px] font-bold py-2 rounded-lg flex-1 shadow-md uppercase">Mapa</button>
+                        <button onclick="window.openGPSRoute('${a.id}')" class="bg-emerald-600 text-white text-[10px] font-bold py-2 rounded-lg flex-1 shadow-md uppercase">Abrir GPS</button>
                     </div>
                     <div id="map-container-${a.id}" class="hidden mt-3 border rounded-xl h-[400px] overflow-hidden shadow-lg">
                         <iframe id="map-frame-${a.id}" width="100%" height="100%" frameborder="0"></iframe>
@@ -228,29 +227,28 @@ export function renderDay(container, tripId, dayId) {
     const dayIndex = t.days.findIndex(x => x.id === d.id);
 
     container.innerHTML = `
-        <div class="sticky top-0 bg-[#fffef0]/90 backdrop-blur-md z-20 py-2 border-b border-gray-200 px-4">
+        <div class="sticky top-0 bg-[#fffef0]/95 backdrop-blur-md z-20 py-2 border-b border-gray-200 px-4">
             <div class="flex items-center justify-between mb-2">
-                <button onclick="window.goTo('trip','${t.id}')" class="bg-white border px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm text-slate-600 hover:bg-gray-50 transition">⬅ Voltar</button>
-                <div class="text-center">
-                    <h2 class="text-xl font-bold text-[#0c4a6e]">${d.customTitle || 'Dia ' + (dayIndex + 1)}</h2>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${d.date ? formatDateBr(d.date) + ' • ' + getDayName(d.date) : ''}</p>
-                    ${subtitleHtml}
+                <button onclick="window.goTo('trip','${t.id}')" class="bg-white border px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm text-slate-600">⬅ Voltar</button>
+                <div class="text-center flex-1 mx-2">
+                    <h2 class="text-lg font-bold text-[#0c4a6e] truncate">${d.customTitle || 'Dia ' + (dayIndex + 1)}</h2>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${d.date ? formatDateBr(d.date) + ' • ' + getDayName(d.date) : ''}</p>
                 </div>
-                <button onclick="window.renameDay()" class="text-slate-300 hover:text-blue-500">✏️</button>
+                <button onclick="window.renameDay()" class="text-slate-300">✏️</button>
             </div>
             <div class="bg-[#0c4a6e] text-white p-2 rounded-xl shadow-lg text-center mb-3 flex justify-between items-center px-4">
-                <span class="text-[10px] uppercase font-bold text-blue-200">Gasto Total do Dia</span>
-                <span class="text-xl font-bold font-mono">R$ ${totalDia.toFixed(2)}</span>
+                <span class="text-[9px] uppercase font-bold text-blue-200">Gasto Total do Dia</span>
+                <span class="text-lg font-bold font-mono">R$ ${totalDia.toFixed(2)}</span>
             </div>
             <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="window.openFullDayRoute()" class="bg-emerald-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg shadow-md shrink-0">🗺️ Rota do Dia</button>
-                <button onclick="window.openAttractionModal()" class="bg-indigo-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg shadow-md shrink-0">+ Atração</button>
-                <button onclick="window.openTransportModal()" class="bg-blue-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg shadow-md shrink-0">+ Bilhete</button>
-                <button onclick="window.openDayExtraModal()" class="bg-amber-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg shadow-md shrink-0">+ Extra</button>
-                <button onclick="window.generateDayPDF(event)" class="bg-white text-red-600 text-[10px] font-bold px-4 py-2 rounded-lg shadow-sm border border-red-100 shrink-0">📄 PDF</button>
+                <button onclick="window.openFullDayRoute()" class="bg-emerald-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-md shrink-0 uppercase tracking-tighter font-mono">🗺️ Rota Geral</button>
+                <button onclick="window.openAttractionModal()" class="bg-indigo-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-md shrink-0 uppercase tracking-tighter">+ Atração</button>
+                <button onclick="window.openTransportModal()" class="bg-blue-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-md shrink-0 uppercase tracking-tighter">+ Bilhete</button>
+                <button onclick="window.openDayExtraModal()" class="bg-amber-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-md shrink-0 uppercase tracking-tighter font-mono">+ Extra</button>
+                <button onclick="window.generateDayPDF(event)" class="bg-white text-red-600 text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-sm border border-red-100 shrink-0 uppercase">📄 PDF</button>
             </div>
         </div>
-        <div class="max-w-4xl mx-auto py-4 px-4">
+        <div class="max-w-4xl mx-auto py-4 px-4 pb-24">
             ${marauderMapHtml}
             ${hotelsHtml}
             ${locationsHtml}
@@ -258,18 +256,18 @@ export function renderDay(container, tripId, dayId) {
             
             <div class="mt-8 border-t pt-4">
                 <details class="bg-orange-50/50 p-4 rounded-xl border border-orange-100 shadow-sm">
-                    <summary class="font-bold cursor-pointer text-orange-700 flex justify-between items-center">
-                        <span class="flex items-center gap-2">💸 Gastos Extras</span>
-                        <span class="text-xs bg-orange-100 px-2 rounded-full">Itens: ${d.extraCosts.length}</span>
+                    <summary class="font-bold cursor-pointer text-orange-700 flex justify-between items-center text-xs uppercase">
+                        <span>💸 Gastos Extras</span>
+                        <span class="bg-orange-100 px-2 rounded-full font-mono">${d.extraCosts.length}</span>
                     </summary>
                     <div class="mt-4 space-y-2">
                         ${d.extraCosts.map((ex, i) => `
                             <div class="flex justify-between items-center text-sm p-3 bg-white rounded-lg border border-orange-100 shadow-sm">
                                 <div class="flex flex-col">
-                                    <span class="font-bold text-slate-700 uppercase text-[10px]">${ex.desc}</span>
+                                    <span class="font-bold text-slate-700 uppercase text-[9px]">${ex.desc}</span>
                                     <span class="text-xs font-mono text-orange-600 font-bold">${ex.currency} ${parseFloat(ex.value).toFixed(2)}</span>
                                 </div>
-                                <button onclick="window.deleteDayExtra(${i})" class="text-red-300 hover:text-red-500 text-xl font-bold">&times;</button>
+                                <button onclick="window.deleteDayExtra(${i})" class="text-red-300 hover:text-red-500 font-bold text-xl leading-none">×</button>
                             </div>`).join('')}
                     </div>
                 </details>
@@ -281,7 +279,7 @@ export function renderDay(container, tripId, dayId) {
         handle: '.attraction-item',
         delay: 300,
         delayOnTouchOnly: true,
-        dataIdAttr: 'id',
+        dataIdAttr: 'data-id', // Importante para o novo transporte
         onEnd: () => updateAttractionOrder(document.querySelectorAll('#attractionsContainer .attraction-item')),
     });
 }
@@ -297,8 +295,8 @@ function updateAttractionOrder(nodeList) {
     ids.forEach(id => {
         const item = combined.find(i => String(i.id) === String(id));
         if (item) {
-            // Se o item tem "steps", ele é um transporte, senão é atração
-            if (item.steps) newTrans.push(item);
+            // Diferencia transporte de atração pela existência de steps
+            if (item.steps !== undefined) newTrans.push(item);
             else newAtt.push(item);
         }
     });
@@ -312,7 +310,7 @@ export function renameDay() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
     const newTitle = prompt('Novo título do dia:', d.customTitle || ''); if (newTitle === null) return;
-    const newSub = prompt('Novo Subtítulo (frase do dia):', d.subtitle || ''); if (newSub === null) return;
+    const newSub = prompt('Subtítulo / Frase do dia:', d.subtitle || ''); if (newSub === null) return;
     d.customTitle = newTitle.trim(); d.subtitle = newSub.trim();
     saveData(); window.render();
 }
@@ -339,7 +337,10 @@ export function setInlineMode(id, mode) {
     setCurrentInlineModes(currentInlineModes);
     ['d', 't', 'w'].forEach(m => {
         const btn = document.getElementById(`mode-${m}-${id}`);
-        if (btn) btn.className = (m === mode) ? 'flex-1 border rounded-lg p-2 text-xs font-bold bg-blue-100 border-blue-500 shadow-sm' : 'flex-1 border rounded-lg p-2 text-xs font-bold bg-white border-gray-200';
+        if (btn) {
+            if (m === mode) btn.className = 'flex-1 border rounded-lg p-2 text-[10px] font-bold bg-blue-100 border-blue-500 shadow-sm';
+            else btn.className = 'flex-1 border rounded-lg p-2 text-[10px] font-bold bg-white border-gray-200';
+        }
     });
 }
 
