@@ -1,7 +1,7 @@
 import { appData, currentState, saveData } from '../store.js';
-import { randomId } from '../utils.js';
+import { randomId, closeModals } from '../utils.js';
 
-// --- COTAÇÕES HISTÓRICAS ---
+// --- API DE CÂMBIO HISTÓRICO ---
 export async function fetchHistoricalRate(currency, date) {
     if (!date || currency === 'BRL') return 1;
     try {
@@ -11,7 +11,7 @@ export async function fetchHistoricalRate(currency, date) {
     } catch (e) { return null; }
 }
 
-// --- INTERFACE DO MODAL ---
+// --- INTERFACE ---
 export function openFinanceModal() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     if (!t) return;
@@ -28,14 +28,24 @@ export function openFinanceModal() {
 export function switchFinanceTab(tab) {
     ['report', 'costs'].forEach(t => {
         document.getElementById(`tab-${t}`)?.classList.add('hidden');
-        document.getElementById(`btn-tab-${t}`)?.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
+        const btn = document.getElementById(`btn-tab-${t}`);
+        if (btn) btn.className = "pb-2 font-bold text-sm uppercase tracking-wider text-gray-400";
     });
+    
     document.getElementById(`tab-${tab}`)?.classList.remove('hidden');
-    document.getElementById(`btn-tab-${tab}`)?.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
+    const activeBtn = document.getElementById(`btn-tab-${tab}`);
+    if (activeBtn) activeBtn.className = "pb-2 font-bold text-sm uppercase tracking-wider border-b-2 border-blue-600 text-blue-600";
+    
     if (tab === 'report') renderReport();
 }
 
-// --- GESTÃO DE DADOS (O que estava causando o erro) ---
+// --- CÁLCULOS ---
+function getRate(curr) {
+    if (!curr || curr === 'BRL') return 1;
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    return parseFloat(t?.rates?.[curr]) || 1;
+}
+
 export function saveRates() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     if (!t) return;
@@ -46,28 +56,65 @@ export function saveRates() {
     };
     saveData(); 
     renderReport();
-    alert("Cotações salvas!");
 }
 
+export async function syncHistoricalRates() {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    if (!t) return;
+    const btn = document.getElementById('btnSyncRates');
+    btn.innerText = '⌛ Sincronizando...';
+
+    // Sincroniza baseado no primeiro hotel pago de cada moeda
+    for (let m of ['EUR', 'GBP', 'USD']) {
+        const firstPaid = t.hotels?.find(h => h.paid && h.payDate && h.currency === m);
+        if (firstPaid) {
+            const rate = await fetchHistoricalRate(m, firstPaid.payDate);
+            if (rate) t.rates[m] = rate.toFixed(2);
+        }
+    }
+
+    await saveData();
+    openFinanceModal(); 
+    btn.innerText = '🔄 Sincronizar por Datas';
+    alert("Câmbio atualizado com base nas datas de pagamento!");
+}
+
+// --- GESTÃO DE CUSTOS INICIAIS ---
 export function addInitialCost() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     if (!t) return;
     if (!t.initialCosts) t.initialCosts = []; 
     t.initialCosts.push({
         id: randomId(),
-        desc: document.getElementById('initDesc')?.value || '',
-        currency: document.getElementById('initCurr')?.value || 'BRL',
-        value: document.getElementById('initVal')?.value || '0'
+        desc: document.getElementById('initDesc').value,
+        currency: document.getElementById('initCurr').value,
+        value: document.getElementById('initVal').value || 0
     });
     saveData(); 
     renderInitialCostsList();
+    renderReport();
 }
 
 export function deleteInitialCost(id) {
     const t = appData.trips.find(x => x.id === currentState.tripId);
-    if(t) t.initialCosts = (t.initialCosts || []).filter(c => c.id !== id);
+    t.initialCosts = t.initialCosts.filter(c => c.id !== id);
     saveData(); 
     renderInitialCostsList();
+    renderReport();
+}
+
+function renderInitialCostsList() {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    const el = document.getElementById('initialCostsList');
+    if (!t || !el) return;
+    el.innerHTML = (t.initialCosts || []).map(c => `
+        <li class="flex justify-between items-center p-3 bg-gray-50 border rounded shadow-sm">
+            <span class="font-bold text-slate-700 text-sm">${c.desc}</span>
+            <div class="flex items-center gap-4">
+                <span class="font-mono text-xs font-bold">${c.currency} ${parseFloat(c.value).toFixed(2)}</span>
+                <button onclick="window.deleteInitialCost('${c.id}')" class="text-red-500 text-xl font-bold">&times;</button>
+            </div>
+        </li>`).join('');
 }
 
 // --- RELATÓRIO PAGO VS PENDENTE ---
@@ -76,77 +123,56 @@ export async function renderReport() {
     if (!t) return;
 
     let res = {
-        pago: { inicial: 0, hoteis: 0, atracoes: 0, extras: 0, total: 0 },
+        pago: { inicial: 0, hoteis: 0, atracoes: 0, total: 0 },
         pendente: { hoteis: 0, atracoes: 0, total: 0 }
     };
 
-    const getRate = (curr) => parseFloat(t.rates?.[curr]) || 1;
-
-    (t.initialCosts || []).forEach(c => res.pago.inicial += parseFloat(c.value || 0) * getRate(c.currency));
+    (t.initialCosts || []).forEach(c => res.pago.inicial += parseFloat(c.value) * getRate(c.currency));
 
     (t.hotels || []).forEach(h => {
-        const v = parseFloat(h.cost || 0) * getRate(h.currency);
+        const v = parseFloat(h.cost) * getRate(h.currency);
         h.paid ? res.pago.hoteis += v : res.pendente.hoteis += v;
     });
 
     (t.days || []).forEach(d => {
         d.attractions.forEach(a => {
-            const v = (a.costs || []).reduce((acc, c) => acc + (parseFloat(c.value || 0) * getRate(c.currency)), 0);
+            const v = (a.costs || []).reduce((acc, c) => acc + (parseFloat(c.value) * getRate(c.currency)), 0);
             a.visited ? res.pago.atracoes += v : res.pendente.atracoes += v;
         });
-        (d.extraCosts || []).forEach(ex => res.pago.extras += parseFloat(ex.value || 0) * getRate(ex.currency));
+        (d.extraCosts || []).forEach(ex => res.pago.inicial += parseFloat(ex.value) * getRate(ex.currency));
     });
 
-    res.pago.total = res.pago.inicial + res.pago.hoteis + res.pago.atracoes + res.pago.extras;
+    res.pago.total = res.pago.inicial + res.pago.hoteis + res.pago.atracoes;
     res.pendente.total = res.pendente.hoteis + res.pendente.atracoes;
 
-    displayFinanceData(res);
-}
-
-// Sincroniza câmbio histórico
-export async function syncHistoricalRates() {
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    if (!t) return;
-    const btn = document.getElementById('btnSyncRates');
-    btn.innerText = '⌛...';
-
-    const firstPaidEUR = t.hotels?.find(h => h.paid && h.payDate && h.currency === 'EUR');
-    if (firstPaidEUR) {
-        const rate = await fetchHistoricalRate('EUR', firstPaidEUR.payDate);
-        if (rate) t.rates.EUR = rate.toFixed(2);
-    }
-
-    await saveData();
-    openFinanceModal(); 
-    btn.innerText = '🔄 Sincronizar';
-}
-
-// Renderização interna (não exportada)
-function renderInitialCostsList() {
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    const el = document.getElementById('initialCostsList');
-    if (!t || !el) return;
-    el.innerHTML = (t.initialCosts || []).map(c => `
-        <li class="flex justify-between p-2 border-b text-sm">
-            <span>${c.desc}</span>
-            <button onclick="window.deleteInitialCost('${c.id}')" class="text-red-400">×</button>
-        </li>`).join('');
-}
-
-function displayFinanceData(res) {
     const container = document.getElementById('tab-report');
-    if (container) {
-        container.innerHTML = `
-            <div class="space-y-3 mt-4">
-                <div class="p-3 bg-green-50 rounded border-l-4 border-green-500">
-                    <p class="text-[10px] uppercase font-bold text-green-700">✅ Pago: R$ ${res.pago.total.toFixed(2)}</p>
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="space-y-4">
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded shadow-sm">
+                <h4 class="text-emerald-800 font-bold uppercase text-[10px] mb-2 tracking-widest">✅ Já Pago (Realizado)</h4>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between"><span>Custos Iniciais:</span> <span class="font-mono font-bold">R$ ${res.pago.inicial.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Hotéis Pagos:</span> <span class="font-mono font-bold">R$ ${res.pago.hoteis.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Atrações Visitadas:</span> <span class="font-mono font-bold">R$ ${res.pago.atracoes.toFixed(2)}</span></div>
+                    <div class="flex justify-between border-t pt-2 text-emerald-900 font-bold text-lg"><span>TOTAL:</span> <span>R$ ${res.pago.total.toFixed(2)}</span></div>
                 </div>
-                <div class="p-3 bg-amber-50 rounded border-l-4 border-amber-500">
-                    <p class="text-[10px] uppercase font-bold text-amber-700">⏳ Pendente: R$ ${res.pendente.total.toFixed(2)}</p>
+            </div>
+
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow-sm">
+                <h4 class="text-amber-800 font-bold uppercase text-[10px] mb-2 tracking-widest">⏳ Provisionado (Pendente)</h4>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between"><span>Hotéis a Pagar:</span> <span class="font-mono font-bold">R$ ${res.pendente.hoteis.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Atrações a Visitar:</span> <span class="font-mono font-bold">R$ ${res.pendente.atracoes.toFixed(2)}</span></div>
+                    <div class="flex justify-between border-t pt-2 text-amber-900 font-bold text-lg"><span>A PAGAR:</span> <span>R$ ${res.pendente.total.toFixed(2)}</span></div>
                 </div>
-                <div class="p-4 bg-slate-800 text-white rounded text-center">
-                    <h2 class="text-2xl font-mono">Total: R$ ${(res.pago.total + res.pendente.total).toFixed(2)}</h2>
-                </div>
-            </div>`;
-    }
+            </div>
+
+            <div class="bg-slate-800 text-white p-6 rounded-xl text-center shadow-xl">
+                <p class="text-[10px] uppercase opacity-60 tracking-widest mb-1">Custo Total Estimado</p>
+                <h2 class="text-4xl font-bold font-mono text-amber-400">R$ ${(res.pago.total + res.pendente.total).toFixed(2)}</h2>
+            </div>
+        </div>
+    `;
 }
