@@ -49,41 +49,64 @@ export function renderHome() {
 }
 
 export async function createTrip() {
-    // 1. Busca os elementos da tela 'new'
+    // 1. Busca os campos da tela de formulário
     const nameEl = document.getElementById('newName');
     const destEl = document.getElementById('newDest');
     const startEl = document.getElementById('newStart');
     const endEl = document.getElementById('newEnd');
 
-    // 2. Se os inputs existirem (estamos na tela correta)
-    if (nameEl && destEl) {
-        const name = nameEl.value;
-        const destination = destEl.value;
-        const startDate = startEl.value;
-        const endDate = endEl.value;
-
-        if (!name || !destination) return alert('Por favor, preencha o Nome e o Destino!');
-
-        const newTrip = {
-            id: randomId(),
-            name: name,
-            destination: destination, // Agora salva o local
-            startDate: startDate,     // Agora salva o início
-            endDate: endDate,         // Agora salva o fim
-            days: [],
-            hotels: [],
-            initialCosts: [],
-            checklist: [],
-            rates: { USD: 0, EUR: 0, GBP: 0 }
-        };
-
-        appData.trips.push(newTrip);
-        await saveData();
-        window.goTo('home'); // Volta para a home após criar
-    } else {
-        // Fallback: Se clicar por engano, manda para a tela de formulário
+    // Se não encontrar os campos, é porque você clicou na Home antes de ir para a tela 'new'
+    if (!nameEl) {
         window.goTo('new');
+        return;
     }
+
+    const name = nameEl.value.trim();
+    const destination = destEl.value.trim();
+    const startDate = startEl.value;
+    const endDate = endEl.value;
+
+    if (!name || !destination || !startDate || !endDate) {
+        alert('✨ Por favor, preencha todos os campos para gerar seu roteiro mágico!');
+        return;
+    }
+
+    const newTrip = {
+        id: Math.random().toString(36).substr(2, 9),
+        name,
+        destination,
+        startDate,
+        endDate,
+        days: [],
+        hotels: [],
+        initialCosts: [],
+        checklist: [],
+        rates: { USD: 0, EUR: 0, GBP: 0 }
+    };
+
+    // 2. GERAÇÃO AUTOMÁTICA DOS DIAS
+    let current = new Date(startDate + 'T00:00:00');
+    const last = new Date(endDate + 'T00:00:00');
+
+    while (current <= last) {
+        newTrip.days.push({
+            id: Math.random().toString(36).substr(2, 9),
+            date: current.toISOString().split('T')[0],
+            locations: [],
+            attractions: [],
+            transport: [],
+            extraCosts: [],
+            journal: '',
+            subtitle: '',
+            isBucket: false // Garante que apareça como dia regular
+        });
+        current.setDate(current.getDate() + 1);
+    }
+
+    // 3. SALVAMENTO
+    appData.trips.push(newTrip);
+    await saveData();
+    window.goTo('home'); 
 }
 
 export async function importData(event) {
