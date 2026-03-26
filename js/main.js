@@ -15,7 +15,7 @@ import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
 import { openTransportModal, addRouteStep, saveRoute, deleteTransport } from './modals/transport.js';
 import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
-import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost } from './modals/finance.js';
+import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport } from './modals/finance.js';
 import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
          toggleCheckItem, deleteCheckItem, openDocumentsModal, saveDocument,
          deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
@@ -29,28 +29,45 @@ import { fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHis
 import { fetchAIFacts } from './features/ai.js';
 import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS } from './features/export.js';
 
-// --- EXPOSIÇÃO GLOBAL ---
+// --- EXPOSIÇÃO GLOBAL (A "FIAÇÃO") ---
 Object.assign(window, {
+    // Auth & Router
     logoutUser, goTo, openTrip, openDay, render, closeModals,
+    
+    // Home & Trip Management
     createTrip, editTripMetadata, deleteTrip, importData,
     exportData: () => exportDataAsJson(appData),
     addDay, addBucketList, deleteDay,
+    
+    // Day View Actions
     renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
     setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
     setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions,
+    
+    // Modals: Attraction & Transport
     openAttractionModal, saveAttraction, addTempCost,
     openTransportModal, addRouteStep, saveRoute, deleteTransport,
+    
+    // Modals: Hotels
     openHotelManager, saveHotel, editHotel, deleteHotel,
-    openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost,
+    
+    // Modals: Finance (Novas funções inclusas aqui!)
+    openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport,
+    
+    // Modals: Misc
     openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
     toggleCheckItem, deleteCheckItem, openDocumentsModal, saveDocument,
     deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
     openMoveCopyModal, prepareMoveModal, confirmMoveCopy,
+    
+    // Features: Maps & Weather
     openCitySearch, addLocation, removeLocation, fetchWeather,
     openFullDayRoute, calcInlineRoute, openGPSRoute,
     useMyLocation, initOriginAutocomplete, openRadarModal, scanRadar,
+    
+    // Features: AI, Wiki & Export
     fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHistory, fetchAIFacts,
-        generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS
+    generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS
 });
  
 // --- INICIALIZAÇÃO ---
@@ -58,14 +75,20 @@ function init() {
     initAuth(() => {
         try {
             loadData();
-            if (document.getElementById('attDescEditor')) {
+            // Inicializa o Quill se o elemento existir
+            const editorEl = document.getElementById('attDescEditor');
+            if (editorEl && typeof Quill !== 'undefined') {
                 const quill = new Quill('#attDescEditor', { theme: 'snow' });
                 setAttractionQuill(quill);
             }
+            
             const params = new URLSearchParams(window.location.search);
             const urlTrip = params.get('tripId');
             if (urlTrip) goTo('trip', urlTrip); else render();
-        } catch (e) { console.error('Erro ao inicializar:', e); render(); }
+        } catch (e) { 
+            console.error('Erro ao inicializar:', e); 
+            render(); 
+        }
     });
 }
 

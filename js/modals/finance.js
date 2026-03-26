@@ -1,150 +1,144 @@
-// --- MODAL: FINANÇAS COMPLETO ---
 import { appData, currentState, saveData } from '../store.js';
 import { randomId } from '../utils.js';
 
-let financeChartInstance = null; // Variável para guardar o gráfico visual
+// Busca a cotação real de uma data específica (Histórico)
+export async function fetchHistoricalRate(currency, date) {
+    if (!date || currency === 'BRL') return 1;
+    try {
+        const response = await fetch(`https://api.frankfurter.app/${date}?from=${currency}&to=BRL`);
+        const data = await response.json();
+        return data.rates?.BRL || null;
+    } catch (error) {
+        console.error(`Erro na cotação (${currency}) em ${date}:`, error);
+        return null;
+    }
+}
 
 export function openFinanceModal() {
-    try {
-        const t = appData.trips.find(x => x.id === currentState.tripId);
-        if (!t) { alert("Erro: Viagem não encontrada."); return; }
-        
-        // Carrega as cotações guardadas
-        if (document.getElementById('rateUSD')) document.getElementById('rateUSD').value = t.rates?.USD || '';
-        if (document.getElementById('rateEUR')) document.getElementById('rateEUR').value = t.rates?.EUR || '';
-        if (document.getElementById('rateGBP')) document.getElementById('rateGBP').value = t.rates?.GBP || '';
-        
-        const modal = document.getElementById('financeModal');
-        if (modal) modal.classList.remove('hidden');
-        
-        switchFinanceTab('report');
-        renderInitialCostsList();
-    } catch (e) { console.error(e); }
-}
-
-export function closeFinanceModal() {
-    window.closeModals();
-}
-
-export function switchFinanceTab(tab) {
-    ['report', 'costs'].forEach(t => {
-        const content = document.getElementById(`tab-${t}`);
-        if (content) content.classList.add('hidden');
-        const btn = document.getElementById(`btn-tab-${t}`);
-        if (btn) { btn.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600'); btn.classList.add('text-gray-500'); }
-    });
-    const activeContent = document.getElementById(`tab-${tab}`);
-    if (activeContent) activeContent.classList.remove('hidden');
-    
-    const activeBtn = document.getElementById(`btn-tab-${tab}`);
-    if (activeBtn) { activeBtn.classList.remove('text-gray-500'); activeBtn.classList.add('border-b-2', 'border-blue-600', 'text-blue-600'); }
-    
-    if (tab === 'report') renderReport();
-}
-
-export function saveRates() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     if (!t) return;
-    t.rates = { 
-        USD: document.getElementById('rateUSD')?.value || '', 
-        EUR: document.getElementById('rateEUR')?.value || '', 
-        GBP: document.getElementById('rateGBP')?.value || '' 
+
+    document.getElementById('rateUSD').value = t.rates?.USD || '';
+    document.getElementById('rateEUR').value = t.rates?.EUR || '';
+    document.getElementById('rateGBP').value = t.rates?.GBP || '';
+    
+    document.getElementById('financeModal').classList.remove('hidden');
+    switchFinanceTab('report');
+}
+
+// Função auxiliar para decidir qual cotação usar
+function getEffectiveRate(itemCurrency, itemDate, tripRates) {
+    if (!itemCurrency || itemCurrency === 'BRL') return 1;
+    // Se o item tiver uma cotação específica salva (pela busca histórica), usamos ela
+    // Caso contrário, usamos a cotação padrão da viagem
+    return tripRates?.[itemCurrency] || 1;
+}
+
+export async function renderReport() {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    if (!t) return;
+
+    let res = {
+        pago: { inicial: 0, hoteis: 0, atracoes: 0, extras: 0, total: 0 },
+        pendente: { hoteis: 0, atracoes: 0, total: 0 }
     };
-    saveData(); 
-    renderReport();
-    alert("Cotações Atualizadas!");
-}
 
-// O motor de conversão de moeda
-function getRate(curr) {
-    if (!curr || curr === 'BRL') return 1;
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    const rate = parseFloat(t?.rates?.[curr]);
-    return (rate && rate > 0) ? rate : 1; 
-}
-
-export function addInitialCost() {
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    if (!t) return;
-    if (!t.initialCosts) t.initialCosts = []; 
-    t.initialCosts.push({
-        id: randomId(),
-        desc: document.getElementById('initDesc')?.value || '',
-        currency: document.getElementById('initCurr')?.value || 'BRL',
-        value: document.getElementById('initVal')?.value || '0'
+    // 1. Custos Iniciais
+    (t.initialCosts || []).forEach(c => {
+        res.pago.inicial += parseFloat(c.value || 0) * getEffectiveRate(c.currency, null, t.rates);
     });
-    saveData(); 
-    document.getElementById('initDesc').value = '';
-    document.getElementById('initVal').value = '';
-    renderInitialCostsList();
-}
 
-export function deleteInitialCost(id) {
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    if(t) t.initialCosts = (t.initialCosts || []).filter(c => c.id !== id);
-    saveData(); 
-    renderInitialCostsList();
-}
-
-function renderInitialCostsList() {
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    const el = document.getElementById('initialCostsList');
-    if (!t || !el) return;
-    el.innerHTML = (t.initialCosts || []).map(c => `
-        <li class="flex justify-between items-center p-2 bg-white border rounded shadow-sm">
-            <span class="font-bold text-[#2c1a4d]">${c.desc}</span>
-            <div class="flex items-center gap-4">
-                <span class="font-mono text-sm">${c.currency} ${parseFloat(c.value).toFixed(2)}</span>
-                <button onclick="window.deleteInitialCost('${c.id}')" class="text-red-400 font-bold hover:text-red-600">×</button>
-            </div>
-        </li>`).join('');
-}
-
-function renderReport() {
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    if (!t) return;
-    
-    let totalIniciais = 0, totalHoteis = 0, totalTransporte = 0, totalAtracoes = 0, totalExtras = 0;
-    
-    // 1. Custos Iniciais (Passagens aéreas, seguros, etc.)
-    (t.initialCosts || []).forEach(c => totalIniciais += parseFloat(c.value || 0) * getRate(c.currency));
-    
     // 2. Hotéis
-    (t.hotels || []).forEach(h => totalHoteis += parseFloat(h.cost || 0) * getRate(h.currency));
-    
-    // 3. Varredura dos Dias (Transporte, Atrações e Extras)
-    (t.days || []).forEach(d => {
-        (d.transport || []).forEach(tr => totalTransporte += parseFloat(tr.cost || 0) * getRate(tr.currency));
-        (d.attractions || []).forEach(a => (a.costs || []).forEach(c => totalAtracoes += parseFloat(c.value || 0) * getRate(c.currency)));
-        (d.extraCosts || []).forEach(ex => totalExtras += parseFloat(ex.value || 0) * getRate(ex.currency));
-    });
+    for (const h of (t.hotels || [])) {
+        const valorBRL = parseFloat(h.cost || 0) * getEffectiveRate(h.currency, h.payDate, t.rates);
+        h.paid ? res.pago.hoteis += valorBRL : res.pendente.hoteis += valorBRL;
+    }
 
-    const totalGeral = totalIniciais + totalHoteis + totalTransporte + totalAtracoes + totalExtras;
-    const elTotal = document.getElementById('reportGrandTotal');
-    if(elTotal) elTotal.innerText = `Total Estimado: R$ ${totalGeral.toFixed(2)}`; 
-    
-    // 4. Desenhar o Gráfico
-    const ctx = document.getElementById('financeChart');
-    if (!ctx) return;
-    
-    if (financeChartInstance) financeChartInstance.destroy(); // Limpa o gráfico antigo
-    
-    financeChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Custos Iniciais', 'Alojamento', 'Transporte', 'Atrações', 'Gastos Extras'],
-            datasets: [{
-                data: [totalIniciais, totalHoteis, totalTransporte, totalAtracoes, totalExtras],
-                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'],
-                borderWidth: 2
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+    // 3. Atrações e Extras
+    for (const d of (t.days || [])) {
+        for (const a of d.attractions) {
+            const custoAttBRL = (a.costs || []).reduce((acc, c) => 
+                acc + (parseFloat(c.value || 0) * getEffectiveRate(c.currency, d.date, t.rates)), 0);
+            a.visited ? res.pago.atracoes += custoAttBRL : res.pendente.atracoes += custoAttBRL;
         }
-    });
+        (d.extraCosts || []).forEach(ex => {
+            res.pago.extras += parseFloat(ex.value || 0) * getEffectiveRate(ex.currency, d.date, t.rates);
+        });
+    }
+
+    res.pago.total = res.pago.inicial + res.pago.hoteis + res.pago.atracoes + res.pago.extras;
+    res.pendente.total = res.pendente.hoteis + res.pendente.atracoes;
+
+    displayFinanceData(res);
 }
+
+// Função para atualizar as cotações base baseadas nas datas de pagamento
+export async function syncHistoricalRates() {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    if (!t) return;
+
+    const btn = document.getElementById('btnSyncRates');
+    btn.innerText = '⌛ Sincronizando...';
+
+    // Exemplo: Atualiza a cotação do Euro baseada no primeiro hotel pago
+    const firstPaidHotel = t.hotels?.find(h => h.paid && h.payDate && h.currency === 'EUR');
+    if (firstPaidHotel) {
+        const rate = await fetchHistoricalRate('EUR', firstPaidHotel.payDate);
+        if (rate) {
+            t.rates.EUR = rate.toFixed(2);
+            document.getElementById('rateEUR').value = t.rates.EUR;
+        }
+    }
+
+    // Repete para Libra (GBP)
+    const firstPaidGBP = t.hotels?.find(h => h.paid && h.payDate && h.currency === 'GBP');
+    if (firstPaidGBP) {
+        const rate = await fetchHistoricalRate('GBP', firstPaidGBP.payDate);
+        if (rate) {
+            t.rates.GBP = rate.toFixed(2);
+            document.getElementById('rateGBP').value = t.rates.GBP;
+        }
+    }
+
+    await saveData();
+    renderReport();
+    btn.innerText = '🔄 Sincronizar Câmbio';
+    alert("Cotações atualizadas com base nas datas de pagamento!");
+}
+
+function displayFinanceData(res) {
+    const container = document.getElementById('tab-report');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="space-y-4 w-full">
+            <button id="btnSyncRates" onclick="window.syncHistoricalRates()" class="w-full py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold hover:bg-indigo-100 transition mb-2">
+                🔄 Sincronizar Câmbio por Datas
+            </button>
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm">
+                <h4 class="text-green-800 font-bold uppercase text-[10px] mb-2">✅ Realizado (Pago)</h4>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between"><span>Iniciais:</span> <span class="font-mono font-bold">R$ ${res.pago.inicial.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Hotéis:</span> <span class="font-mono font-bold">R$ ${res.pago.hoteis.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Atrações:</span> <span class="font-mono font-bold">R$ ${res.pago.atracoes.toFixed(2)}</span></div>
+                    <div class="flex justify-between border-t pt-1 text-green-900 font-bold"><span>TOTAL:</span> <span>R$ ${res.pago.total.toFixed(2)}</span></div>
+                </div>
+            </div>
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow-sm">
+                <h4 class="text-amber-800 font-bold uppercase text-[10px] mb-2">⏳ Provisionado (A Pagar)</h4>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between"><span>Hotéis:</span> <span class="font-mono font-bold">R$ ${res.pendente.hoteis.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Atrações:</span> <span class="font-mono font-bold">R$ ${res.pendente.atracoes.toFixed(2)}</span></div>
+                    <div class="flex justify-between border-t pt-1 text-amber-900 font-bold"><span>RESTANTE:</span> <span>R$ ${res.pendente.total.toFixed(2)}</span></div>
+                </div>
+            </div>
+            <div class="bg-slate-800 text-white p-4 rounded-lg text-center shadow-lg">
+                <p class="text-[10px] uppercase opacity-70">Total da Aventura</p>
+                <h2 class="text-3xl font-bold font-mono">R$ ${(res.pago.total + res.pendente.total).toFixed(2)}</h2>
+            </div>
+        </div>
+    `;
+}
+
+// Exposição para o global
+window.syncHistoricalRates = syncHistoricalRates;
