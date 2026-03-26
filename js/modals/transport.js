@@ -175,3 +175,20 @@ window.openTransportModal = openTransportModal;
 window.calcTransportRoute = calcTransportRoute;
 window.saveTransport = saveTransport;
 window.addRouteStep = addRouteStep;
+// APAGAR O BILHETE
+export async function deleteTransport(id) {
+    if (!confirm('Tem certeza que deseja apagar este bilhete?')) return;
+    
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    if (!t) return;
+    const d = t.days.find(x => x.id === currentState.dayId);
+    if (!d || !d.transport) return;
+
+    d.transport = d.transport.filter(x => String(x.id) !== String(id));
+    
+    await saveData();
+    window.render();
+}
+
+// Expõe a função para o botão da lixeira funcionar
+window.deleteTransport = deleteTransport;
