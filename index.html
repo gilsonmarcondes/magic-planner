@@ -2,193 +2,90 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Planner ✈️</title>
-    
-    <meta name="theme-color" content="#0c4a6e">
-    <link rel="apple-touch-icon" href="icon-192.png">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Planner - Viagem Abril 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Amatic+SC:wght@700&display=swap" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAtp5jarrnwyy3_JWVfoWGbKlfEd4NjSKk&libraries=places&language=pt_BR"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-[#fffef0] text-slate-800 pb-20 select-none font-['Quicksand']">
+<body class="bg-slate-100 font-sans">
 
-    <div id="loginScreen" class="fixed inset-0 bg-[#0c4a6e] z-[100] flex flex-col items-center justify-center text-white transition-opacity duration-500">
-        <h1 class="text-5xl font-['Amatic_SC'] mb-4 text-[#d4af37] text-center drop-shadow-lg">Magic Planner ✈️</h1>
-        <p class="mb-8 opacity-80 text-center px-4 font-bold">O seu roteiro, agora na nuvem.</p>
-        <button id="btnLogin" class="bg-white text-[#0c4a6e] hover:bg-gray-100 flex items-center gap-3 px-6 py-3 rounded-full font-bold shadow-2xl transition transform hover:scale-105">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
-            Entrar com o Google
+    <div class="p-10 text-center">
+        <button onclick="window.openFinanceModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">
+            💰 Abrir Painel Financeiro
         </button>
-        <div id="loginLoading" class="hidden mt-4 text-sm animate-pulse text-[#d4af37] font-bold">Autenticando...</div>
-    </div>
-
-    <div id="autoSaveIndicator" class="fixed top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg z-50 transition-opacity opacity-0 pointer-events-none">
-        ☁️ Salvo na nuvem
-    </div>
-
-    <div id="app" class="p-4 max-w-5xl mx-auto min-h-screen"></div>
-
-    <div id="hotelModal" class="hidden fixed inset-0 bg-slate-900/70 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl w-full max-w-md p-6 relative shadow-2xl">
-            <button onclick="window.closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-2xl transition">&times;</button>
-            <h3 class="text-xl font-bold mb-4 text-[#0c4a6e] border-b pb-2">Gerenciar Hotéis</h3>
-            
-            <div id="hotelList" class="max-h-40 overflow-y-auto mb-4 bg-gray-50 rounded p-2"></div>
-            
-            <input type="text" id="hotelName" class="w-full border p-2 rounded mb-2 text-sm bg-gray-50 focus:bg-white" placeholder="Nome do Hotel">
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <div><label class="text-[10px] text-gray-500 uppercase font-bold">Check-in</label><input type="date" id="hotelCheckIn" class="w-full border p-2 rounded text-sm bg-gray-50"></div>
-                <div><label class="text-[10px] text-gray-500 uppercase font-bold">Check-out</label><input type="date" id="hotelCheckOut" class="w-full border p-2 rounded text-sm bg-gray-50"></div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <div><label class="text-[10px] text-gray-500 uppercase font-bold">Custo Total</label><input type="number" id="hotelCost" class="w-full border p-2 rounded text-sm bg-gray-50" placeholder="0.00"></div>
-                <div><label class="text-[10px] text-gray-500 uppercase font-bold">Moeda</label><select id="hotelCur" class="w-full border p-2 rounded text-sm bg-gray-50"><option>BRL</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
-            </div>
-            <div class="mb-4">
-                <label class="text-[10px] text-gray-500 uppercase font-bold">Data de Pagamento</label>
-                <input type="date" id="hotelPayDate" class="w-full border p-2 rounded text-sm bg-gray-50">
-            </div>
-            <div class="flex items-center gap-2 mb-4 bg-green-50 p-2 rounded border border-green-100">
-                <input type="checkbox" id="hotelPaid" class="w-4 h-4 text-green-600"> <label for="hotelPaid" class="text-sm font-bold text-green-800 cursor-pointer">Hotel já está pago?</label>
-            </div>
-            <button onclick="window.saveHotel()" class="w-full bg-[#0c4a6e] hover:bg-[#072c42] text-white p-3 rounded-lg font-bold transition shadow-md">Salvar Hotel</button>
-        </div>
+        <button onclick="window.openDocsModal()" class="ml-4 bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-emerald-700 transition">
+            📄 Documentos da Viagem
+        </button>
     </div>
 
     <div id="financeModal" class="hidden fixed inset-0 bg-slate-900/70 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
-            <button onclick="window.closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-2xl transition">&times;</button>
+            <button onclick="window.closeFinanceModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-2xl transition">&times;</button>
+            
             <h3 class="text-2xl font-bold mb-4 text-[#0c4a6e] border-b pb-2">Painel Financeiro</h3>
             
             <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <h4 class="text-xs font-bold mb-2 text-gray-500 uppercase">Cotação do Câmbio (R$)</h4>
                 <div class="grid grid-cols-3 gap-3">
-                    <div><label class="text-[10px] text-gray-500 font-bold">USD</label><input type="number" id="rateUSD" class="w-full border p-2 rounded text-sm" placeholder="5.00" onchange="window.saveRates()"></div>
-                    <div><label class="text-[10px] text-gray-500 font-bold">EUR</label><input type="number" id="rateEUR" class="w-full border p-2 rounded text-sm" placeholder="5.50" onchange="window.saveRates()"></div>
-                    <div><label class="text-[10px] text-gray-500 font-bold">GBP</label><input type="number" id="rateGBP" class="w-full border p-2 rounded text-sm" placeholder="6.20" onchange="window.saveRates()"></div>
+                    <div><label class="text-[10px] text-gray-500 font-bold">USD</label><input type="number" id="rateUSD" class="w-full border p-2 rounded text-sm" onchange="window.saveRates()"></div>
+                    <div><label class="text-[10px] text-gray-500 font-bold">EUR</label><input type="number" id="rateEUR" class="w-full border p-2 rounded text-sm" onchange="window.saveRates()"></div>
+                    <div><label class="text-[10px] text-gray-500 font-bold">GBP</label><input type="number" id="rateGBP" class="w-full border p-2 rounded text-sm" onchange="window.saveRates()"></div>
                 </div>
             </div>
 
             <div class="flex border-b mb-4">
-                <button id="btn-tab-report" onclick="window.switchFinanceTab('report')" class="flex-1 py-2 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">Visão Geral</button>
-                <button id="btn-tab-monthly" onclick="window.switchFinanceTab('monthly')" class="flex-1 py-2 font-bold text-sm border-b-2 border-transparent text-gray-500 transition">Por Mês</button>
-                <button id="btn-tab-costs" onclick="window.switchFinanceTab('costs')" class="flex-1 py-2 font-bold text-sm border-b-2 border-transparent text-gray-500 transition">Custos Iniciais</button>
+                <button id="btn-tab-report" onclick="window.switchFinanceTab('report')" class="flex-1 py-2 font-bold text-sm border-b-2 border-blue-600 text-blue-600">Visão Geral</button>
+                <button id="btn-tab-monthly" onclick="window.switchFinanceTab('monthly')" class="flex-1 py-2 font-bold text-sm border-b-2 border-transparent text-gray-500">Por Mês</button>
+                <button id="btn-tab-costs" onclick="window.switchFinanceTab('costs')" class="flex-1 py-2 font-bold text-sm border-b-2 border-transparent text-gray-500">Custos Iniciais</button>
             </div>
 
-            <div id="tab-report" class="">
-                <h2 id="reportGrandTotal" class="text-center text-xl font-bold text-red-600 mb-4 bg-red-50 p-2 rounded-lg border border-red-100"></h2>
-                
+            <div id="tab-report">
+                <h2 id="reportGrandTotal" class="text-center text-xl font-bold text-red-600 mb-4 bg-red-50 p-2 rounded-lg border border-red-100">R$ 0,00</h2>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                        <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-1">Custos Fixos (Já Pagos)</h4>
-                        <div id="reportSunkCosts" class="grid grid-cols-2 gap-1"></div>
+                        <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-1">Pagos</h4>
+                        <div id="reportSunkCosts" class="grid grid-cols-2 gap-1 text-xs text-emerald-700"></div>
                     </div>
                     <div>
-                        <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-1">Custos Variáveis (A Pagar)</h4>
-                        <div id="reportVariableCosts" class="grid grid-cols-2 gap-1"></div>
+                        <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-1">A Pagar</h4>
+                        <div id="reportVariableCosts" class="grid grid-cols-2 gap-1 text-xs text-amber-700"></div>
                     </div>
                 </div>
-
                 <div class="w-full h-48 mb-6">
                     <canvas id="financeChart"></canvas>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="font-bold text-emerald-700 text-sm mb-2 border-b pb-1">✅ Já Pago</h4>
-                        <div id="paidItemsList" class="max-h-40 overflow-y-auto pr-1"></div>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-amber-700 text-sm mb-2 border-b pb-1">⏳ A Pagar no Local</h4>
-                        <div id="executedItemsList" class="max-h-40 overflow-y-auto pr-1"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-monthly" class="hidden">
-                <div class="w-full h-48 mb-6">
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-                <h4 class="font-bold text-[#0c4a6e] text-sm mb-2 border-b pb-1">Resumo por Mês</h4>
-                <div id="monthlyListContainer" class="space-y-2 max-h-48 overflow-y-auto"></div>
             </div>
 
             <div id="tab-costs" class="hidden">
                 <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
                     <div class="grid grid-cols-2 gap-2 mb-2">
                         <input type="text" id="initType" class="border p-2 rounded text-sm" placeholder="Ex: Voo, Seguro..." list="costTypes">
-                        <datalist id="costTypes"><option value="Passagem Aérea"></option><option value="Seguro Viagem"></option><option value="Chip de Internet"></option><option value="Visto"></option></datalist>
-                        <input type="text" id="initDesc" class="border p-2 rounded text-sm" placeholder="Descrição rápida">
+                        <input type="text" id="initDesc" class="border p-2 rounded text-sm" placeholder="Descrição">
                     </div>
                     <div class="grid grid-cols-3 gap-2 mb-2">
                         <input type="number" id="initVal" class="border p-2 rounded text-sm" placeholder="Valor">
-                        <select id="initCurr" class="border p-2 rounded text-sm"><option>BRL</option><option>USD</option><option>EUR</option><option>GBP</option></select>
+                        <select id="initCurr" class="border p-2 rounded text-sm"><option>BRL</option><option>EUR</option><option>GBP</option></select>
                         <input type="date" id="initDate" class="border p-2 rounded text-sm">
                     </div>
-                    <button onclick="window.addInitialCost()" class="w-full bg-[#0c4a6e] text-white p-2 rounded font-bold shadow hover:bg-[#072c42] transition">➕ Adicionar Custo</button>
+                    <button onclick="window.addInitialCost()" class="w-full bg-[#0c4a6e] text-white p-2 rounded font-bold shadow hover:bg-[#072c42]">➕ Adicionar Custo</button>
                 </div>
-                
-                <h4 class="font-bold text-sm mb-2 text-gray-700 border-b pb-1">Lista de Custos Iniciais</h4>
                 <ul id="initialCostsList" class="space-y-2 max-h-40 overflow-y-auto"></ul>
             </div>
         </div>
     </div>
 
-    <div id="checklistModal" class="hidden fixed inset-0 bg-slate-900/70 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl w-full max-w-md p-6 relative shadow-2xl">
-            <button onclick="window.closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-2xl transition">&times;</button>
-            <h3 class="text-xl font-bold mb-4 text-[#0c4a6e] border-b pb-2">Checklist de Viagem</h3>
-            <div id="checklistItems" class="max-h-60 overflow-y-auto mb-4 space-y-1"></div>
-            <div class="flex gap-2">
-                <input type="text" id="newCheckItem" class="flex-1 border p-3 rounded-lg text-sm bg-gray-50" placeholder="Adicionar novo item...">
-                <button onclick="window.addCheckItem()" class="bg-[#0c4a6e] text-white px-5 rounded-lg font-bold shadow-md hover:bg-[#072c42] transition">➕</button>
+    <div id="docsModal" class="hidden fixed inset-0 bg-slate-900/70 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl w-full max-w-md p-8 relative text-center shadow-2xl">
+            <button onclick="window.closeDocsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl">&times;</button>
+            <div class="mb-4 text-slate-300">
+                <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             </div>
+            <h3 class="text-xl font-bold text-[#0c4a6e] mb-2">DOCUMENTOS DA VIAGEM</h3>
+            <p class="text-sm text-gray-600 mb-6">A galeria de documentos (vouchers e PDFs) está sendo adaptada para salvar diretamente no banco de dados. Em breve!</p>
+            <button onclick="window.closeDocsModal()" class="w-full bg-blue-100 text-blue-700 py-3 rounded-lg font-bold hover:bg-blue-200 transition">Entendi</button>
         </div>
     </div>
 
-    <div id="documentsModal" class="hidden fixed inset-0 bg-slate-900/70 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl w-full max-w-md p-6 relative shadow-2xl text-center">
-            <button onclick="window.closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-2xl transition">&times;</button>
-            <div class="text-4xl mb-4">📄</div>
-            <h3 class="text-xl font-bold mb-2 text-[#0c4a6e]">Documentos da Viagem</h3>
-            <p class="text-gray-500 text-sm mb-6">A galeria de documentos (vouchers e PDFs) está sendo adaptada para salvar diretamente no banco de dados do Google. Em breve!</p>
-            <button onclick="window.closeModals()" class="w-full bg-blue-100 text-blue-700 hover:bg-blue-200 p-3 rounded-lg font-bold transition">Entendi</button>
-        </div>
-    </div>
-
-    <div id="attractionModal" class="hidden fixed inset-0 bg-slate-900/70 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
-            <button onclick="window.closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-2xl transition">&times;</button>
-            <h3 class="text-xl font-bold mb-4 text-[#0c4a6e] border-b pb-2">Detalhes do Local</h3>
-            <label class="text-xs font-bold text-gray-500 uppercase">Nome da Atração</label>
-            <input type="text" id="attName" class="w-full border-2 border-gray-200 p-3 rounded-lg mb-4 text-lg font-bold text-gray-800" placeholder="Nome do local...">
-            <label class="text-xs font-bold text-gray-500 uppercase">Anotações / Roteiro</label>
-            <div id="attDescEditor" class="h-48 mb-6 bg-gray-50 rounded-b-lg border border-gray-200"></div>
-            <button onclick="window.saveAttraction()" class="w-full bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg font-bold text-lg shadow-lg transition">Salvar Local</button>
-        </div>
-    </div>
-
-    <div id="transportModal" class="hidden fixed inset-0 z-[110] bg-black/50"></div>
-    <div id="dayExtraModal" class="hidden fixed inset-0 z-[110] bg-black/50"></div>
-    <div id="searchModal" class="hidden fixed inset-0 z-[110] bg-black/50"></div>
-    <div id="moveCopyModal" class="hidden fixed inset-0 z-[110] bg-black/50"></div>
-
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    
-    <script>
-        window.generatePDF = () => alert("Função PDF em adaptação para a nuvem! ⏳");
-        window.generateCalendarPDF = () => alert("Função Calendário em adaptação! ⏳");
-        window.generateICS = () => alert("Exportação para Agenda em adaptação! ⏳");
-        window.generateVisitedKML = () => alert("Exportação de Mapa em adaptação! ⏳");
-    </script>
-
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="./js/finance.js"></script>
 </body>
 </html>
