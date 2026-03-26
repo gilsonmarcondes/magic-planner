@@ -15,8 +15,7 @@ import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
 import { openTransportModal, addRouteStep, saveRoute, deleteTransport } from './modals/transport.js';
 import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
-import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport } from './modals/finance.js';
-import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
+import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport } from './modals/finance.js';import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
          toggleCheckItem, deleteCheckItem, openDocumentsModal, saveDocument,
          deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
          openMoveCopyModal, prepareMoveModal, confirmMoveCopy }              from './modals/misc.js';
