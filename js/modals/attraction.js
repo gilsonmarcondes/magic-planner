@@ -36,6 +36,20 @@ export function openAttractionModal(id = null) {
     costs.forEach(c => addTempCostRow(c.desc, c.value, c.currency));
 
     document.getElementById('attractionModal').classList.remove('hidden');
+        // --- NOVO: Inicializa o Autocomplete do Google no campo de endereço ---
+    if (window.google && !document.getElementById('attAddress').dataset.autocompleteBound) {
+        const input = document.getElementById('attAddress');
+        const autocomplete = new google.maps.places.Autocomplete(input);
+        
+        // Quando o usuário selecionar um lugar, podemos até capturar mais detalhes no futuro
+        autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            console.log("Local selecionado:", place.name);
+        });
+
+        // Marca como "vinculado" para não repetir a inicialização desnecessariamente
+        input.dataset.autocompleteBound = "true";
+    }
 }
 
 export function addTempCost() {

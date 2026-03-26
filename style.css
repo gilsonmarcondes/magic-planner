@@ -204,9 +204,14 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Correções Google Maps e Scroll */
+/* Garante que a lista de sugestões apareça na frente de qualquer modal */
 .pac-container { 
     z-index: 10000 !important; 
-    border-radius: 8px; margin-top: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+    border-radius: 8px; 
+    margin-top: 5px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+    border: 1px solid #d4af37;
+    font-family: 'Lato', sans-serif;
 }
 
 /* Scrollbar Fina e Elegante */
