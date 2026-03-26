@@ -13,9 +13,11 @@ import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
 
 // Modals
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
-import { openTransportModal, addRouteStep, saveRoute, deleteTransport } from './modals/transport.js';
+// AQUI: Importamos o calcTransportRoute e o saveTransport corretos
+import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
 import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
-import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport } from './modals/finance.js';import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
+import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport } from './modals/finance.js';
+import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
          toggleCheckItem, deleteCheckItem, openDocumentsModal, saveDocument,
          deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
          openMoveCopyModal, prepareMoveModal, confirmMoveCopy }              from './modals/misc.js';
@@ -45,7 +47,8 @@ Object.assign(window, {
     
     // Modals: Attraction & Transport
     openAttractionModal, saveAttraction, addTempCost,
-    openTransportModal, addRouteStep, saveRoute, deleteTransport,
+    // AQUI: Trocamos saveRoute por saveTransport e adicionamos calcTransportRoute
+    openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport,
     
     // Modals: Hotels
     openHotelManager, saveHotel, editHotel, deleteHotel,
