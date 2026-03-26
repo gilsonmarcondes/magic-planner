@@ -204,6 +204,54 @@
         <div id="hotelList" class="max-h-40 overflow-y-auto border-t pt-2 space-y-1"></div>
     </div>
 </div>
+<div id="transportModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
+        <div class="modal-content w-full max-w-lg bg-white rounded-lg shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 id="transTitle" class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">Novo Bilhete</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
+            </div>
+            <div class="space-y-4 mb-4">
+                <input id="transName" class="w-full p-2 border rounded" placeholder="Título (Ex: Trem Londres -> Edimburgo)">
+                <div class="flex gap-2">
+                    <input id="transCost" type="number" class="w-full p-2 border rounded" placeholder="Custo">
+                    <select id="transCur" class="w-24 p-2 border rounded">
+                        <option value="GBP">£</option>
+                        <option value="EUR">€</option>
+                        <option value="USD">$</option>
+                        <option value="BRL">R$</option>
+                    </select>
+                </div>
+                <input id="transMap" class="w-full p-2 border rounded" placeholder="Link do Mapa (Iframe ou URL)">
+            </div>
+            <div class="mb-4 border p-3 rounded bg-gray-50">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="font-bold text-[#0c4a6e] text-sm">Passos do Trajeto</label>
+                    <button onclick="window.addRouteStep()" class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded font-bold border border-blue-300">+ Passo</button>
+                </div>
+                <div id="routeStepsList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+            </div>
+            <button onclick="window.saveRoute()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">Salvar Bilhete</button>
+        </div>
+    </div>
+
+    <div id="dayExtraModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
+        <div class="modal-content w-full max-w-md bg-white rounded-lg shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">💰 Gasto Extra</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input id="extraDesc" class="w-full p-2 border rounded" placeholder="Descrição (Ex: Café, Lembrancinha)">
+                <div class="flex gap-2">
+                    <input id="extraValue" type="number" class="w-full p-2 border rounded" placeholder="0.00">
+                    <select id="extraCurr" class="w-24 p-2 border rounded bg-white">
+                        <option value="GBP">£</option><option value="EUR">€</option><option value="USD">$</option><option value="BRL">R$</option>
+                    </select>
+                </div>
+                <button onclick="window.saveDayExtra()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">Salvar Gasto</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
