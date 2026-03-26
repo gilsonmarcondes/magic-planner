@@ -395,3 +395,41 @@ export function toggleSelectAllAttractions() {
     const allChecked = Array.from(checkboxes).every(c => c.checked);
     checkboxes.forEach(c => c.checked = !allChecked);
 }
+
+export function sortAttractionsByPriority() {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    const d = t.days.find(x => x.id === currentState.dayId);
+    if (!d.attractions?.length) return alert('Nenhuma atração para ordenar.');
+    
+    // Peso das prioridades
+    const w = { must_see: 1, imperdivel: 1, photo: 2, foto: 2, maybe: 3, se_der: 3, standard: 4, padrao: 4 };
+    
+    d.attractions.sort((a, b) => {
+        const pA = (a.priority || 'standard').toLowerCase().trim();
+        const pB = (b.priority || 'standard').toLowerCase().trim();
+        return (w[pA] || 4) - (w[pB] || 4);
+    });
+    
+    saveData(); 
+    window.render();
+    
+    const btn = document.getElementById('btnSortPrio');
+    if (btn) { 
+        const orig = btn.innerHTML; 
+        btn.innerHTML = '✅ Ordenado!'; 
+        setTimeout(() => btn.innerHTML = orig, 1500); 
+    }
+}
+
+// Aproveitando para garantir que o Mapa do Maroto funcione 100%
+export function setMarauderMap(dayId) {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    const d = t.days.find(x => x.id === dayId); 
+    if (!d) return;
+    const url = prompt('Cole o link do Google My Maps para este dia:', d.mapUrl || '');
+    if (url !== null) { 
+        d.mapUrl = url; 
+        saveData(); 
+        window.render(); 
+    }
+}
