@@ -1,90 +1,117 @@
-// --- GERENCIAMENTO DE ESTADO E DADOS (NUVEM FIREBASE) ---
-import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { db } from './firebase.js';
-import { currentUser } from './auth.js';
-import { STORAGE_KEY } from './config.js';
+// --- ESTADO GLOBAL E PERSISTÊNCIA ---
+import { STORAGE_KEY, STORAGE_KEY_LEGACY } from './config.js';
 
-// --- VARIÁVEIS DO APLICATIVO ---
-export const appData = { trips: [] };
+export let appData = { trips: [] };
 
-export const currentState = {
-    page: 'home',
-    tripId: null,
-    dayId: null,
-    batchIds: [],
-    attractionToMove: null
-};
+export let currentState = { page: 'home', tripId: null, dayId: null };
 
+// Variáveis de edição temporária compartilhadas entre modais
+export let currentEditingId = null;
+export let tempAttractionCosts = [];
+export let tempRouteSteps = [];
+export let currentEditingTicketId = null;
+export let currentEditingHotelId = null;
 export let currentInlineModes = {};
-let attractionQuillInstance = null;
-
-// --- 📈 VARIÁVEIS DOS GRÁFICOS (O QUE ESTAVA FALTANDO!) ---
+export let currentAttractionToMove = null;
+export let currentBatchIds = [];
+export let currentAttractionPlace = null;
+export let attractionQuill = null;
+export let cityAutocomplete = null;
 export let myFinanceChart = null;
 export let myMonthlyChart = null;
+export let wikiDebounce = null;
 
-// --- FUNÇÕES DE ATUALIZAÇÃO ---
-export function setCurrentState(newState) { Object.assign(currentState, newState); }
-export function setCurrentInlineModes(modes) { currentInlineModes = modes; }
-export function setAppData(newData) { appData.trips = newData.trips || []; }
+// Setters para variáveis mutáveis exportadas
+export function setAppData(data) { appData = data; }
+export function setCurrentState(updates) { Object.assign(currentState, updates); }
+export function setCurrentEditingId(id) { currentEditingId = id; }
+export function setTempAttractionCosts(arr) { tempAttractionCosts = arr; }
+export function setTempRouteSteps(arr) { tempRouteSteps = arr; }
+export function setCurrentEditingTicketId(id) { currentEditingTicketId = id; }
+export function setCurrentEditingHotelId(id) { currentEditingHotelId = id; }
+export function setCurrentInlineModes(obj) { currentInlineModes = obj; }
+export function setCurrentAttractionToMove(id) { currentAttractionToMove = id; }
+export function setCurrentBatchIds(arr) { currentBatchIds = arr; }
+export function setCurrentAttractionPlace(place) { currentAttractionPlace = place; }
+export function setAttractionQuill(quill) { attractionQuill = quill; }
+export function setCityAutocomplete(ac) { cityAutocomplete = ac; }
+export function setMyFinanceChart(chart) { myFinanceChart = chart; }
+export function setMyMonthlyChart(chart) { myMonthlyChart = chart; }
+export function setWikiDebounce(t) { wikiDebounce = t; }
 
-export function setAttractionQuill(q) { attractionQuillInstance = q; }
-export function getAttractionQuill() { return attractionQuillInstance; }
+// --- NORMALIZAÇÃO DOS DADOS (migração de versões antigas) ---
+export function normalizeData(data) {
+    if (!data.trips) data.trips = [];
 
-export function setCurrentBatchIds(ids) { currentState.batchIds = ids; }
-export function setCurrentAttractionToMove(id) { currentState.attractionToMove = id; }
+    data.trips.forEach(t => {
+        if (!t.initialCosts) t.initialCosts = [];
+        if (!t.checklist)    t.checklist = [];
+        if (!t.hotels)       t.hotels = [];
+        if (!t.rates)        t.rates = { USD: 0, EUR: 0, GBP: 0 };
+        if (!t.coverPhoto)   t.coverPhoto = '';
+        if (!t.documents)    t.documents = [];
+        if (!t.days)         t.days = [];
 
-// --- FUNÇÕES DOS GRÁFICOS (NECESSÁRIAS PARA O FINANCE.JS) ---
-export function setMyFinanceChart(val) { myFinanceChart = val; }
-export function setMyMonthlyChart(val) { myMonthlyChart = val; }
+        t.days.forEach(d => {
+            if (!d.locations)              d.locations = [];
+            if (!d.attractions)            d.attractions = [];
+            if (!d.transport)              d.transport = [];
+            if (!d.extraCosts)             d.extraCosts = [];
+            if (typeof d.journal !== 'string') d.journal = '';
+            if (!d.mapUrl)                 d.mapUrl = '';
+            if (!d.subtitle)               d.subtitle = '';
 
-// --- ☁️ FUNÇÕES DE NUVEM ---
+            d.attractions.forEach(a => {
+                if (!a.costs)      a.costs = [];
+                if (!a.photos)     a.photos = a.photo ? [a.photo] : [];
+                if (!a.type)       a.type = 'other';
+                if (!a.priority)   a.priority = 'standard';
+                if (!a.mapNumber)  a.mapNumber = '';
+                if (!a.subtitle)   a.subtitle = '';
+                a.costs.forEach(c => {
+                    if (c.paid === undefined)    c.paid = false;
+                    if (c.payDate === undefined) c.payDate = '';
+                });
+            });
 
-export async function loadData() {
-    if (!currentUser) return;
-    try {
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
+            d.transport.forEach(tr => { if (!tr.steps) tr.steps = []; });
+        });
+    });
 
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            appData.trips = data.trips || [];
-        } else {
-            const localData = localStorage.getItem(STORAGE_KEY);
-            if (localData) {
-                console.log("Migrando dados locais...");
-                const parsed = JSON.parse(localData);
-                appData.trips = parsed.trips || [];
-                await saveData(); 
-                alert("✨ Mágica feita! Seus roteiros foram migrados para a nuvem!");
-            }
-        }
-        if (window.render) window.render();
-    } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+    return data;
+}
+
+// --- SALVAMENTO BLINDADO ---
+function showSaveStatus() {
+    const el = document.getElementById('autoSaveIndicator');
+    if (el) {
+        el.classList.remove('opacity-0');
+        setTimeout(() => el.classList.add('opacity-0'), 2000);
     }
 }
 
-export async function saveData() {
-    if (!currentUser) return;
-    const indicator = document.getElementById('autoSaveIndicator');
-    if (indicator) {
-        indicator.innerText = '⏳ Salvando...';
-        indicator.classList.remove('opacity-0');
-        indicator.classList.replace('bg-green-500', 'bg-blue-500');
-    }
+// Adicionamos o parâmetro "silent" para não piscar a notificação a cada 10s
+export function saveData(silent = false) {
     try {
-        const docRef = doc(db, "users", currentUser.uid);
-        await setDoc(docRef, { trips: appData.trips });
-        if (indicator) {
-            indicator.innerText = '☁️ Salvo';
-            indicator.classList.replace('bg-blue-500', 'bg-green-500');
-            setTimeout(() => indicator.classList.add('opacity-0'), 2000);
-        }
-    } catch (error) {
-        console.error("Erro ao salvar:", error);
-        if (indicator) {
-            indicator.innerText = '❌ Erro';
-            indicator.classList.replace('bg-blue-500', 'bg-red-500');
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        if (!silent) showSaveStatus();
+    } catch (e) {
+        console.error("Erro ao salvar:", e);
+        if (e.name === 'QuotaExceededError') {
+            alert("⚠️ Atenção: O armazenamento do navegador está cheio! Remova algumas fotos do diário ou do checklist para voltar a salvar.");
         }
     }
 }
+
+// --- CARREGAMENTO ---
+export function loadData() {
+    const json = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY_LEGACY);
+    if (json) {
+        const parsed = JSON.parse(json);
+        setAppData(normalizeData(parsed));
+    }
+}
+
+// Auto-save a cada 10 segundos (agora é silencioso!)
+setInterval(() => saveData(true), 10_000);
+

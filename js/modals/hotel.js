@@ -1,89 +1,98 @@
 // --- MODAL: HOTEL ---
-import { appData, currentState, saveData } from '../store.js';
-import { randomId, closeModals } from '../utils.js';
+import { appData, currentState, saveData, setCurrentEditingHotelId, currentEditingHotelId } from '../store.js';
+import { formatDateBr, randomId } from '../utils.js';
 
-let currentEditingId = null;
 
-export function openHotelManager(id = null) {
-    currentEditingId = id;
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    if (!t) return alert('Selecione uma viagem primeiro.');
+export function openHotelManager() {
+    setCurrentEditingHotelId(null);
+    const modal = document.getElementById('hotelModal');
+    if (!modal) return alert('Modal de Hotel não encontrado.');
 
-    const h = id ? t.hotels.find(x => String(x.id) === String(id)) : null;
+    ['hotelName','hotelAddress','hotelCheckIn','hotelCheckOut','hotelCost','hotelPayDate'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+    const chkPaid = document.getElementById('hotelPaid'); if (chkPaid) chkPaid.checked = false;
+    toggleHotelPayDate();
 
-    // Preenche os campos do formulário
-    document.getElementById('hotelName').value     = h ? h.name : '';
-    document.getElementById('hotelCheckIn').value  = h ? h.checkIn : '';
-    document.getElementById('hotelCheckOut').value = h ? h.checkOut : '';
-    document.getElementById('hotelCost').value     = h ? h.cost : '';
-    document.getElementById('hotelCur').value      = h ? h.currency : 'BRL';
-    document.getElementById('hotelPayDate').value  = h ? (h.payDate || '') : '';
-    document.getElementById('hotelPaid').checked   = h ? h.paid : false;
+    const btnSave   = document.getElementById('btnSaveHotel');   if (btnSave)   btnSave.innerText = 'Salvar Hotel';
+    const btnCancel = document.getElementById('btnCancelEditHotel'); if (btnCancel) btnCancel.classList.add('hidden');
 
-    renderHotelList(t);
-    document.getElementById('hotelModal').classList.remove('hidden');
+    modal.classList.add('active');
+    renderHotelList();
 }
 
-function renderHotelList(t) {
-    const list = document.getElementById('hotelList');
-    if (!list) return;
+export function saveHotel() {
+    const name     = document.getElementById('hotelName').value;
+    const checkIn  = document.getElementById('hotelCheckIn').value;
+    const checkOut = document.getElementById('hotelCheckOut').value;
+    if (!name || !checkIn || !checkOut) return alert('Preencha Nome, Check-in e Check-out.');
 
-    list.innerHTML = (t.hotels || []).map(h => `
-        <div class="p-2 border-b text-xs flex justify-between items-center ${h.paid ? 'bg-green-50' : ''}">
-            <div class="flex flex-col">
-                <span class="font-bold text-[#0c4a6e]">${h.name}</span>
-                <span class="text-[10px] text-gray-500">${h.checkIn} até ${h.checkOut}</span>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="window.editHotel('${h.id}')" class="bg-blue-100 text-blue-600 p-1 rounded hover:bg-blue-200 transition">✏️</button>
-                <button onclick="window.deleteHotel('${h.id}')" class="bg-red-100 text-red-600 p-1 rounded hover:bg-red-200 transition">🗑️</button>
-            </div>
-        </div>`).join('');
-}
-
-export async function saveHotel() {
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    const name = document.getElementById('hotelName').value;
-    
-    if (!name) return alert('O nome do hotel é obrigatório.');
-
-    const hData = {
-        id: currentEditingId || randomId(),
+    const t    = appData.trips.find(x => x.id === currentState.tripId);
+    const data = {
+        id:       currentEditingHotelId || randomId(),
         name,
-        checkIn: document.getElementById('hotelCheckIn').value,
-        checkOut: document.getElementById('hotelCheckOut').value,
-        cost: document.getElementById('hotelCost').value || 0,
-        currency: document.getElementById('hotelCur').value,
-        payDate: document.getElementById('hotelPayDate').value,
-        paid: document.getElementById('hotelPaid').checked
+        address:  document.getElementById('hotelAddress').value,
+        checkIn, checkOut,
+        cost:     document.getElementById('hotelCost').value,
+        currency: document.getElementById('hotelCurr').value,
+        paid:     document.getElementById('hotelPaid').checked,
+        payDate:  document.getElementById('hotelPayDate').value,
     };
 
-    if (!t.hotels) t.hotels = [];
+    if (currentEditingHotelId) {
+        const idx = t.hotels.findIndex(h => h.id === currentEditingHotelId);
+        if (idx !== -1) t.hotels[idx] = data;
+    } else { t.hotels.push(data); }
 
-    if (currentEditingId) {
-        const idx = t.hotels.findIndex(x => String(x.id) === String(currentEditingId));
-        t.hotels[idx] = hData;
-    } else {
-        t.hotels.push(hData);
-    }
-
-    await saveData(); // Salva na nuvem
-    currentEditingId = null;
-    openHotelManager(); // Atualiza a lista no modal
-    window.render();    // Atualiza a tela de fundo
+    saveData(); openHotelManager(); window.render();
 }
 
-// ESTA FUNÇÃO PRECISA DO EXPORT:
-export function editHotel(id) { 
-    openHotelManager(id); 
-}
-
-// ESTA FUNÇÃO PRECISA DO EXPORT:
-export async function deleteHotel(id) {
-    if (!confirm('Tem certeza que deseja excluir este hotel?')) return;
+export function editHotel(id) {
     const t = appData.trips.find(x => x.id === currentState.tripId);
-    t.hotels = t.hotels.filter(x => String(x.id) !== String(id));
-    await saveData();
-    openHotelManager();
-    window.render();
+    const h = t.hotels.find(x => x.id === id); if (!h) return;
+    setCurrentEditingHotelId(id);
+
+    document.getElementById('hotelName').value     = h.name;
+    document.getElementById('hotelAddress').value  = h.address;
+    document.getElementById('hotelCheckIn').value  = h.checkIn;
+    document.getElementById('hotelCheckOut').value = h.checkOut;
+    document.getElementById('hotelCost').value     = h.cost;
+    document.getElementById('hotelCurr').value     = h.currency;
+    document.getElementById('hotelPaid').checked   = h.paid;
+    document.getElementById('hotelPayDate').value  = h.payDate || '';
+    toggleHotelPayDate();
+
+    document.getElementById('btnSaveHotel').innerText = 'Atualizar';
+    document.getElementById('btnCancelEditHotel').classList.remove('hidden');
+}
+
+export function deleteHotel(id) {
+    if (!confirm('Remover este hotel?')) return;
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    t.hotels = t.hotels.filter(h => h.id !== id);
+    saveData(); renderHotelList(); render();
+}
+
+export function cancelEditHotel() { openHotelManager(); }
+
+export function toggleHotelPayDate() {
+    const chk       = document.getElementById('hotelPaid');
+    const container = document.getElementById('hotelPayDateContainer');
+    if (chk && container) container.classList.toggle('hidden', !chk.checked);
+}
+
+function renderHotelList() {
+    const t    = appData.trips.find(x => x.id === currentState.tripId);
+    const list = document.getElementById('hotelList'); if (!list) return;
+    list.innerHTML = t.hotels.map(h => `
+        <div class="p-3 mb-2 bg-gray-50 border border-gray-200 rounded flex justify-between items-center">
+            <div>
+                <strong class="text-sm text-[#0c4a6e] block">${h.name}</strong>
+                <span class="text-xs text-gray-500">${formatDateBr(h.checkIn)} ➝ ${formatDateBr(h.checkOut)}</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.editHotel('${h.id}')"   class="text-blue-500 hover:bg-blue-100 p-1 rounded">✏️</button>
+                <button onclick="window.deleteHotel('${h.id}')" class="text-red-500 hover:bg-red-100 p-1 rounded">×</button>
+            </div>
+        </div>`).join('');
 }
