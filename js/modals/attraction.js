@@ -52,9 +52,57 @@ export function openAttractionModal(id = null) {
     }
 }
 
-export function addTempCost() {
-    addTempCostRow('', '', 'BRL');
+// Função para adicionar uma nova linha de custo no HTML
+export function addTempCost(desc = '', value = '', currency = 'USD', paid = false) {
+    const list = document.getElementById('tempCostList');
+    if (!list) return;
+    
+    // O 'checked' define se a caixa vem marcada ou não
+    const isChecked = paid ? 'checked' : '';
+    
+    const html = `
+        <div class="flex items-center gap-2 bg-white p-2 border rounded shadow-sm cost-item">
+            <input type="text" placeholder="Ex: Bilhete" value="${desc}" class="cost-desc flex-1 p-1.5 border rounded text-xs">
+            <input type="number" placeholder="0.00" value="${value}" class="cost-val w-20 p-1.5 border rounded text-xs font-mono">
+            <select class="cost-cur p-1.5 border rounded bg-white text-xs">
+                <option value="USD" ${currency === 'USD' ? 'selected' : ''}>$</option>
+                <option value="EUR" ${currency === 'EUR' ? 'selected' : ''}>€</option>
+                <option value="GBP" ${currency === 'GBP' ? 'selected' : ''}>£</option>
+                <option value="BRL" ${currency === 'BRL' ? 'selected' : ''}>R$</option>
+            </select>
+            <div class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border">
+                <input type="checkbox" class="cost-paid w-3 h-3 cursor-pointer" ${isChecked}>
+                <label class="text-[9px] uppercase font-bold text-gray-500 cursor-pointer">Pago</label>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 font-bold px-1">&times;</button>
+        </div>
+    `;
+    list.insertAdjacentHTML('beforeend', html);
 }
+
+// Quando abrir o modal, certifique-se de que carrega os custos com o estado correcto
+// (Coloque este loop dentro da sua função openAttractionModal, na parte onde carrega os dados)
+/*
+    const list = document.getElementById('tempCostList');
+    list.innerHTML = '';
+    if (attraction.costs) {
+        attraction.costs.forEach(c => addTempCost(c.desc, c.value, c.currency, c.paid));
+    }
+*/
+
+// Quando for guardar a atracção (dentro da função saveAttraction), actualize a recolha dos custos:
+/*
+    const newCosts = [];
+    document.querySelectorAll('#tempCostList .cost-item').forEach(el => {
+        newCosts.push({
+            desc: el.querySelector('.cost-desc').value,
+            value: el.querySelector('.cost-val').value,
+            currency: el.querySelector('.cost-cur').value,
+            paid: el.querySelector('.cost-paid').checked // Guarda o estado da checkbox!
+        });
+    });
+    // Depois atribua newCosts ao seu objecto da atracção antes de guardar...
+*/
 
 function addTempCostRow(d='', v='', c='BRL') {
     const div = document.createElement('div');
