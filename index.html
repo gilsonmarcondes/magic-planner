@@ -65,16 +65,56 @@
         </div>
     </div>
 
-    <div id="attractionModal" class="modal items-center justify-center z-50">
+    <div id="attractionModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
         <div class="modal-content w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-2xl p-6 relative">
             <div class="flex justify-between items-center mb-4 border-b pb-2 sticky top-0 bg-white z-10">
-                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">Detalhes da Atração</h3>
+                <h3 id="attTitle" class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">Nova Atração</h3>
                 <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input id="attName" class="p-3 border rounded border-gray-300" placeholder="Nome">
-                <button onclick="window.saveAttraction()" class="bg-blue-600 text-white p-3 rounded font-bold">Salvar</button>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <input id="attName" class="p-2 border rounded border-gray-300" placeholder="Nome da Atração (Obrigatório)">
+                <input id="attSubtitle" class="p-2 border rounded border-gray-300" placeholder="Subtítulo / Dica curta">
+                
+                <select id="attType" class="p-2 border rounded border-gray-300">
+                    <option value="sight">🏰 Ponto Turístico</option>
+                    <option value="food">🍔 Alimentação</option>
+                    <option value="shop">🛍️ Compras</option>
+                    <option value="other">✨ Outro</option>
+                </select>
+                
+                <select id="attPriority" class="p-2 border rounded border-gray-300">
+                    <option value="standard">Padrão</option>
+                    <option value="must_see">🌟 Imperdível</option>
+                    <option value="photo">📸 Só Foto</option>
+                    <option value="maybe">⏳ Se Der Tempo</option>
+                </select>
+
+                <input id="attHours" class="p-2 border rounded border-gray-300" placeholder="Horário de Funcionamento">
+                <input id="attMapNum" type="number" class="p-2 border rounded border-gray-300" placeholder="Número no Mapa (Ex: 1)">
             </div>
+
+            <input id="attAddress" class="w-full p-2 border rounded border-gray-300 mb-4" placeholder="Endereço Completo">
+            
+            <textarea id="attPhotos" class="w-full p-2 border rounded border-gray-300 mb-4 h-20" placeholder="Links das Fotos (um por linha)"></textarea>
+
+            <div class="mb-4">
+                <label class="font-bold text-[#0c4a6e] text-sm mb-1 block">Descrição e Dicas da IA:</label>
+                <div class="flex gap-2 mb-2">
+                    <button onclick="window.fetchAIFacts()" class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded font-bold border border-indigo-300 shadow-sm hover:bg-indigo-200">✨ Gerar Dicas com IA</button>
+                </div>
+                <div id="attDescEditor" class="h-40 bg-white rounded-b-lg border border-gray-300"></div>
+            </div>
+
+            <div class="mb-4 border p-3 rounded bg-gray-50">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="font-bold text-[#0c4a6e] text-sm">Custos da Atração</label>
+                    <button onclick="window.addTempCost()" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold border border-green-300">+ Custo</button>
+                </div>
+                <div id="tempCostList" class="space-y-2"></div>
+            </div>
+
+            <button onclick="window.saveAttraction()" class="w-full bg-blue-600 text-white p-3 rounded font-bold hover:bg-blue-700 transition">Salvar Atração</button>
         </div>
     </div>
 
