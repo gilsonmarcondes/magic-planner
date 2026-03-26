@@ -20,6 +20,7 @@ export function openTransportModal(id = null) {
     safeSet('transDepTime', '');
     safeSet('transArrTime', '');
     safeSet('transCost', '');
+    safeSet('transNotes', ''); // Limpa o novo campo de texto!
     
     const paidCheckbox = document.getElementById('transPaid');
     if (paidCheckbox) paidCheckbox.checked = false;
@@ -66,6 +67,7 @@ export function openTransportModal(id = null) {
             safeSet('transArrTime', trans.arrTime || '');
             safeSet('transCost', trans.cost || '');
             safeSet('transCur', trans.currency || 'USD');
+            safeSet('transNotes', trans.notes || ''); // Carrega o texto salvo!
             if (paidCheckbox) paidCheckbox.checked = trans.paid || false;
 
             if (trans.steps && trans.steps.length > 0) {
@@ -170,6 +172,7 @@ export async function saveTransport() {
         cost: document.getElementById('transCost')?.value || '',
         currency: document.getElementById('transCur')?.value || 'USD',
         paid: document.getElementById('transPaid')?.checked || false,
+        notes: document.getElementById('transNotes')?.value || '', // Salva o texto grandão!
         steps: newSteps 
     };
 
@@ -206,5 +209,5 @@ window.saveTransport = saveTransport;
 window.addRouteStep = addRouteStep;
 window.deleteTransport = deleteTransport;
 
-console.log("Módulo de Transporte carregado com sucesso!");
+console.log("Módulo de Transporte com Notas carregado com sucesso!");
 // --- FIM DO ARQUIVO transport.js ---
