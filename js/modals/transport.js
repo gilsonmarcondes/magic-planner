@@ -7,13 +7,11 @@ export function openTransportModal(id = null) {
     if (!modal) return;
     modal.classList.remove('hidden');
 
-    // Função super segura: se o campo não existir, ele ignora e não trava o app!
     const safeSet = (elementId, value) => {
         const el = document.getElementById(elementId);
         if (el) el.value = value;
     };
 
-    // Limpa a interface
     safeSet('transType', 'flight');
     safeSet('transRef', '');
     safeSet('transOrigin', '');
@@ -34,10 +32,9 @@ export function openTransportModal(id = null) {
     const mapPlaceholder = document.getElementById('mapPlaceholder');
     if (mapPlaceholder) mapPlaceholder.classList.remove('hidden');
 
-    // Inicializa o Mapa (com proteção dupla)
     if (window.google && !transMap && document.getElementById('transportMap')) {
         transMap = new google.maps.Map(document.getElementById('transportMap'), {
-            center: { lat: 28.5383, lng: -81.3792 }, // Orlando!
+            center: { lat: 28.5383, lng: -81.3792 }, 
             zoom: 10, disableDefaultUI: true, zoomControl: true
         });
         directionsService = new google.maps.DirectionsService();
@@ -50,7 +47,6 @@ export function openTransportModal(id = null) {
         if (document.getElementById('transDest')) new google.maps.places.Autocomplete(document.getElementById('transDest'));
     }
 
-    // Se estiver a editar um bilhete existente...
     if (id) {
         modal.dataset.editingId = id;
         const t = appData.trips.find(x => x.id === currentState.tripId);
@@ -71,7 +67,6 @@ export function openTransportModal(id = null) {
             safeSet('transCur', trans.currency || 'USD');
             if (paidCheckbox) paidCheckbox.checked = trans.paid || false;
 
-            // Carrega os trechos (passo a passo) gravados!
             if (trans.steps && trans.steps.length > 0) {
                 trans.steps.forEach(s => addRouteStep(s.mode, s.time, s.desc));
             }
@@ -83,7 +78,6 @@ export function openTransportModal(id = null) {
     }
 }
 
-// ADICIONA UM TRECHO DE ROTA
 export function addRouteStep(mode = 'walk', time = '', desc = '') {
     const list = document.getElementById('routeStepsList');
     if (!list) return;
@@ -100,8 +94,8 @@ export function addRouteStep(mode = 'walk', time = '', desc = '') {
             </select>
             <div class="flex-1 flex flex-col gap-1">
                 <div class="flex gap-1">
-                    <input type="text" placeholder="Horário ou Tempo" value="${time}" class="step-time w-24 p-1.5 border rounded text-[10px] font-mono shadow-inner">
-                    <input type="text" placeholder="Ex: Linha Circle" value="${desc}" class="step-desc flex-1 p-1.5 border rounded text-xs shadow-inner">
+                    <input type="text" placeholder="Tempo (ex: 15 min)" value="${time}" class="step-time w-24 p-1.5 border rounded text-[10px] font-mono shadow-inner">
+                    <input type="text" placeholder="Instrução" value="${desc}" class="step-desc flex-1 p-1.5 border rounded text-xs shadow-inner">
                 </div>
             </div>
             <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 font-bold px-1 text-lg">&times;</button>
@@ -110,7 +104,6 @@ export function addRouteStep(mode = 'walk', time = '', desc = '') {
     list.insertAdjacentHTML('beforeend', html);
 }
 
-// A MÁGICA DO MAPA
 export function calcTransportRoute() {
     if (!directionsService) return;
     const origin = document.getElementById('transOrigin')?.value;
@@ -148,14 +141,12 @@ export function calcTransportRoute() {
     });
 }
 
-// GUARDAR BILHETE E TRECHOS
 export async function saveTransport() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     if (!t) return;
     const d = t.days.find(x => x.id === currentState.dayId);
     if (!d) return;
 
-    // Lê todos os trechos da tela
     const newSteps = [];
     document.querySelectorAll('#routeStepsList .step-item').forEach(el => {
         const mode = el.querySelector('.step-mode').value;
@@ -178,7 +169,7 @@ export async function saveTransport() {
         cost: document.getElementById('transCost')?.value || '',
         currency: document.getElementById('transCur')?.value || 'USD',
         paid: document.getElementById('transPaid')?.checked || false,
-        steps: newSteps // Guarda o passo a passo!
+        steps: newSteps 
     };
 
     if (!d.transport) d.transport = [];
@@ -191,3 +182,25 @@ export async function saveTransport() {
 
     await saveData();
     window.closeModals();
+    if (window.render) window.render();
+}
+
+export async function deleteTransport(id) {
+    if (!confirm('Tem certeza que deseja apagar este bilhete?')) return;
+    
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    if (!t) return;
+    const d = t.days.find(x => x.id === currentState.dayId);
+    if (!d || !d.transport) return;
+
+    d.transport = d.transport.filter(x => String(x.id) !== String(id));
+    
+    await saveData();
+    if (window.render) window.render();
+}
+
+window.openTransportModal = openTransportModal;
+window.calcTransportRoute = calcTransportRoute;
+window.saveTransport = saveTransport;
+window.addRouteStep = addRouteStep;
+window.deleteTransport = deleteTransport;
