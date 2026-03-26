@@ -17,14 +17,8 @@
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAtp5jarrnwyy3_JWVfoWGbKlfEd4NjSKk&libraries=places&language=pt_BR"></script>
     
     <style>
-        /* 🛡️ REGRA BLINDADA PARA AS JANELAS (MODAIS) */
         .modal { display: none !important; }
-        /* Se o JS tirar a classe 'hidden', a janela aparece à força! */
-        .modal.flex, .modal.active, .modal:not(.hidden) { 
-            display: flex !important; 
-            opacity: 1; 
-            pointer-events: auto; 
-        }
+        .modal.flex, .modal:not(.hidden) { display: flex !important; opacity: 1; pointer-events: auto; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -37,18 +31,9 @@
     <div id="app" class="p-4 max-w-5xl mx-auto min-h-screen"></div>
 
     <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#d4af37] flex justify-around p-3 z-40 hidden shadow-[0_-4px_6_px_-1px_rgba(0,0,0,0.1)]">
-        <button onclick="window.goTo('home')" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition">
-            <span class="text-2xl">🏠</span>
-            <span class="text-[10px] font-bold uppercase tracking-wide">Início</span>
-        </button>
-        <button onclick="window.goTo('trip', currentState.tripId)" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition">
-            <span class="text-2xl">🗺️</span>
-            <span class="text-[10px] font-bold uppercase tracking-wide">Roteiro</span>
-        </button>
-        <button onclick="window.openFinanceModal()" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition">
-            <span class="text-2xl">💰</span>
-            <span class="text-[10px] font-bold uppercase tracking-wide">Finanças</span>
-        </button>
+        <button onclick="window.goTo('home')" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition"><span class="text-2xl">🏠</span><span class="text-[10px] font-bold uppercase tracking-wide">Início</span></button>
+        <button onclick="window.goTo('trip', currentState.tripId)" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition"><span class="text-2xl">🗺️</span><span class="text-[10px] font-bold uppercase tracking-wide">Roteiro</span></button>
+        <button onclick="window.openFinanceModal()" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition"><span class="text-2xl">💰</span><span class="text-[10px] font-bold uppercase tracking-wide">Finanças</span></button>
     </nav>
 
     <div id="attractionModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
@@ -60,14 +45,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <input id="attName" class="p-2 border rounded border-gray-300" placeholder="Nome da Atração">
                 <input id="attSubtitle" class="p-2 border rounded border-gray-300" placeholder="Subtítulo / Dica curta">
-                <select id="attType" class="p-2 border rounded border-gray-300">
-                    <option value="sight">🏰 Ponto Turístico</option><option value="food">🍔 Alimentação</option>
-                    <option value="shop">🛍️ Compras</option><option value="other">✨ Outro</option>
-                </select>
-                <select id="attPriority" class="p-2 border rounded border-gray-300">
-                    <option value="standard">Padrão</option><option value="must_see">🌟 Imperdível</option>
-                    <option value="photo">📸 Só Foto</option><option value="maybe">⏳ Se Der Tempo</option>
-                </select>
+                <select id="attType" class="p-2 border rounded border-gray-300"><option value="sight">🏰 Ponto Turístico</option><option value="food">🍔 Alimentação</option><option value="shop">🛍️ Compras</option><option value="other">✨ Outro</option></select>
+                <select id="attPriority" class="p-2 border rounded border-gray-300"><option value="standard">Padrão</option><option value="must_see">🌟 Imperdível</option><option value="photo">📸 Só Foto</option><option value="maybe">⏳ Se Der Tempo</option></select>
                 <input id="attHours" class="p-2 border rounded border-gray-300" placeholder="Horário">
                 <input id="attMapNum" type="number" class="p-2 border rounded border-gray-300" placeholder="Número Mapa">
             </div>
@@ -78,10 +57,7 @@
                 <div id="attDescEditor" class="h-40 bg-white rounded-b-lg border border-gray-300"></div>
             </div>
             <div class="mb-4 border p-3 rounded bg-gray-50">
-                <div class="flex justify-between items-center mb-2">
-                    <label class="font-bold text-[#0c4a6e] text-sm">Custos</label>
-                    <button onclick="window.addTempCost()" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold">+ Custo</button>
-                </div>
+                <div class="flex justify-between items-center mb-2"><label class="font-bold text-[#0c4a6e] text-sm">Custos</label><button onclick="window.addTempCost()" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold">+ Custo</button></div>
                 <div id="tempCostList" class="space-y-2"></div>
             </div>
             <button onclick="window.saveAttraction()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">Salvar Atração</button>
@@ -103,10 +79,7 @@
                 <input id="transMap" class="w-full p-2 border rounded" placeholder="Link do Mapa">
             </div>
             <div class="mb-4 border p-3 rounded bg-gray-50">
-                <div class="flex justify-between items-center mb-2">
-                    <label class="font-bold text-[#0c4a6e] text-sm">Trajeto</label>
-                    <button onclick="window.addRouteStep()" class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">+ Passo</button>
-                </div>
+                <div class="flex justify-between items-center mb-2"><label class="font-bold text-[#0c4a6e] text-sm">Trajeto</label><button onclick="window.addRouteStep()" class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">+ Passo</button></div>
                 <div id="routeStepsList" class="space-y-2 max-h-40 overflow-y-auto"></div>
             </div>
             <button onclick="window.saveRoute()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">Salvar Bilhete</button>
@@ -164,43 +137,50 @@
                 <input id="newCheckItem" class="flex-1 p-3 border-2 border-blue-100 rounded-lg text-sm" placeholder="O que levar...">
                 <button onclick="window.addCheckItem()" class="bg-blue-600 text-white px-4 rounded-lg font-bold">+</button>
             </div>
-            <div id="checklistContainer" class="max-h-60 overflow-y-auto border rounded bg-white"></div>
+            <div id="checklistItems" class="max-h-60 overflow-y-auto border rounded bg-white"></div>
         </div>
     </div>
 
     <div id="financeModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-2xl h-[90vh] flex flex-col bg-gray-50 p-0 overflow-hidden">
-            <div class="bg-white p-4 border-b flex justify-between items-center">
-                <h3 class="font-magic text-xl text-[#0c4a6e] font-bold">Painel Financeiro 💰</h3>
-                <button onclick="window.closeModals()" class="text-gray-400 text-xl font-bold">&times;</button>
+        <div class="modal-content w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-magic text-2xl text-[#0c4a6e] font-bold">💰 Finanças</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 text-2xl font-bold">&times;</button>
             </div>
-            <div class="flex-1 overflow-y-auto p-4"><div id="tab-report" class="space-y-4"><h2 id="reportGrandTotal" class="text-center text-xl font-bold text-red-600">R$ 0,00</h2><canvas id="financeChart"></canvas></div></div>
-        </div>
-    </div>
-    <div id="documentsModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-lg bg-white rounded-lg p-6">
-            <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold mb-4">📂 Documentos</h3>
-            <button onclick="window.closeModals()" class="w-full bg-blue-100 text-blue-700 py-3 rounded font-bold">Fechar</button>
+            <div class="flex gap-2 mb-4">
+                <input id="rateUSD" placeholder="Cotação Dólar" class="border p-2 rounded w-full">
+                <input id="rateEUR" placeholder="Cotação Euro" class="border p-2 rounded w-full">
+                <input id="rateGBP" placeholder="Cotação Libra" class="border p-2 rounded w-full">
+                <button onclick="window.saveRates()" class="bg-blue-600 text-white px-4 rounded">Salvar</button>
+            </div>
+            <div class="flex gap-2 mb-4">
+                <button id="btn-tab-report" onclick="window.switchFinanceTab('report')" class="font-bold text-blue-600 border-b-2 border-blue-600 px-2">Relatório</button>
+                <button id="btn-tab-costs" onclick="window.switchFinanceTab('costs')" class="font-bold text-gray-500 px-2">Custos Iniciais</button>
+            </div>
+            <div id="tab-report">
+                <h2 id="reportGrandTotal" class="text-xl font-bold text-red-600 mb-2 text-center">R$ 0,00</h2>
+                <canvas id="financeChart"></canvas>
+            </div>
+            <div id="tab-costs" class="hidden">
+                <div class="flex gap-2 mb-2">
+                    <input id="initDesc" placeholder="Descrição" class="border p-2 rounded flex-1">
+                    <input id="initVal" type="number" placeholder="Valor" class="border p-2 rounded w-24">
+                    <select id="initCurr" class="border p-2 rounded"><option>BRL</option><option>GBP</option><option>EUR</option></select>
+                    <button onclick="window.addInitialCost()" class="bg-green-600 text-white px-4 rounded font-bold">+</button>
+                </div>
+                <ul id="initialCostsList" class="space-y-2"></ul>
+            </div>
         </div>
     </div>
 
+    <div id="documentsModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
+        <div class="modal-content w-full max-w-lg bg-white rounded-lg p-6"><h3 class="font-magic text-2xl mb-4">📂 Documentos</h3><button onclick="window.closeModals()" class="w-full bg-blue-100 py-3 rounded">Fechar</button></div>
+    </div>
     <div id="citySearchModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-md bg-white rounded-lg p-6">
-            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">📍 Destino</h3><button onclick="window.closeModals()" class="text-gray-400 text-2xl">&times;</button></div>
-            <input id="citySearchInput" class="w-full p-3 border rounded mb-4" placeholder="Digite a cidade...">
-            <button onclick="window.addLocation()" class="w-full bg-green-600 text-white p-3 rounded font-bold">Adicionar</button>
-        </div>
+        <div class="modal-content w-full max-w-md bg-white rounded-lg p-6"><input id="citySearchInput" class="w-full p-3 border rounded mb-4" placeholder="Cidade..."><button onclick="window.addLocation()" class="w-full bg-green-600 text-white p-3 rounded">Add</button><button onclick="window.closeModals()" class="w-full mt-2 p-3">Cancelar</button></div>
     </div>
     <div id="moveCopyModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-sm bg-white rounded-lg p-6">
-            <h3 id="moveModalTitle" class="font-bold text-lg mb-4">Mover / Copiar</h3>
-            <select id="moveTargetDay" class="w-full p-2 border rounded mb-4"></select>
-            <div class="flex gap-2">
-                <button onclick="window.confirmMoveCopy(false)" class="flex-1 bg-purple-600 text-white p-2 rounded">Mover</button>
-                <button onclick="window.confirmMoveCopy(true)" class="flex-1 bg-blue-600 text-white p-2 rounded">Copiar</button>
-            </div>
-            <button onclick="window.closeModals()" class="w-full mt-2 text-gray-500 p-2">Cancelar</button>
-        </div>
+        <div class="modal-content w-full max-w-sm bg-white rounded-lg p-6"><h3 id="moveModalTitle" class="font-bold text-lg mb-4">Mover/Copiar</h3><select id="moveTargetDay" class="w-full p-2 border rounded mb-4"></select><div class="flex gap-2"><button onclick="window.confirmMoveCopy(false)" class="flex-1 bg-purple-600 text-white p-2 rounded">Mover</button><button onclick="window.confirmMoveCopy(true)" class="flex-1 bg-blue-600 text-white p-2 rounded">Copiar</button></div><button onclick="window.closeModals()" class="w-full mt-2 p-2">Cancelar</button></div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -208,19 +188,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
     <script type="module" src="js/main.js"></script>
-
-    <script>
-        window.closeModals = function() {
-            document.querySelectorAll('.modal').forEach(el => {
-                el.classList.remove('flex', 'active');
-                el.classList.add('hidden');
-            });
-        };
-        window.openFinanceModal = function() { const el = document.getElementById('financeModal'); if (el) { el.classList.remove('hidden'); } };
-        window.openDocsModal = function() { const el = document.getElementById('documentsModal'); if (el) { el.classList.remove('hidden'); } };
-        window.goTo = function(a, b) { if(window.mainGoTo) window.mainGoTo(a, b); };
-    </script>
 </body>
 </html>

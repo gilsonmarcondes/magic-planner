@@ -3,9 +3,6 @@ import { appData, currentState, myFinanceChart, myMonthlyChart, saveData,
          setMyFinanceChart, setMyMonthlyChart } from '../store.js';
 import { formatDateBr, randomId } from '../utils.js';
 
-const parseNum = (val) => parseFloat(String(val || 0).replace(',', '.')) || 0;
-const safeStr = (str) => String(str || '');
-
 // FUNÇÃO PARA ABRIR
 export function openFinanceModal() {
     try {
@@ -17,7 +14,9 @@ export function openFinanceModal() {
         if (document.getElementById('rateGBP')) document.getElementById('rateGBP').value = t.rates?.GBP || '';
         
         const modal = document.getElementById('financeModal');
-        if (modal) modal.classList.add('flex');
+        if (modal) {
+            modal.classList.remove('hidden'); // PADRONIZADO!
+        }
         
         switchFinanceTab('report');
         renderInitialCostsList();
@@ -26,23 +25,24 @@ export function openFinanceModal() {
     }
 }
 
-// FUNÇÃO PARA FECHAR (ESSA FALTAVA!)
 export function closeFinanceModal() {
-    const modal = document.getElementById('financeModal');
-    if (modal) modal.classList.remove('flex');
+    window.closeModals();
 }
 
 export function switchFinanceTab(tab) {
-    ['report', 'monthly', 'costs'].forEach(t => {
+    ['report', 'costs'].forEach(t => {
         const content = document.getElementById(`tab-${t}`);
         if (content) content.classList.add('hidden');
         const btn = document.getElementById(`btn-tab-${t}`);
-        if (btn) { btn.classList.remove('border-blue-600', 'text-blue-600'); btn.classList.add('border-transparent', 'text-gray-500'); }
+        if (btn) { btn.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600'); btn.classList.add('text-gray-500'); }
     });
     const activeContent = document.getElementById(`tab-${tab}`);
     if (activeContent) activeContent.classList.remove('hidden');
+    
+    const activeBtn = document.getElementById(`btn-tab-${tab}`);
+    if (activeBtn) { activeBtn.classList.remove('text-gray-500'); activeBtn.classList.add('border-b-2', 'border-blue-600', 'text-blue-600'); }
+    
     if (tab === 'report')  renderReport();
-    if (tab === 'monthly') renderMonthlyReport();
 }
 
 export function saveRates() {
@@ -55,13 +55,7 @@ export function saveRates() {
     };
     saveData(); 
     renderReport();
-}
-
-function getRate(curr) {
-    if (!curr || curr === 'BRL') return 1;
-    const t = appData.trips.find(x => x.id === currentState.tripId);
-    const rate = parseFloat(t?.rates?.[curr]);
-    return (rate && rate > 0) ? rate : 1; 
+    alert("Cotações Salvas!");
 }
 
 export function addInitialCost() {
@@ -70,13 +64,13 @@ export function addInitialCost() {
     if (!t.initialCosts) t.initialCosts = []; 
     t.initialCosts.push({
         id: randomId(),
-        type: document.getElementById('initType')?.value || 'Outro',
         desc: document.getElementById('initDesc')?.value || '',
         currency: document.getElementById('initCurr')?.value || 'BRL',
-        value: document.getElementById('initVal')?.value || '0',
-        date: document.getElementById('initDate')?.value || new Date().toISOString().split('T')[0],
+        value: document.getElementById('initVal')?.value || '0'
     });
     saveData(); 
+    document.getElementById('initDesc').value = '';
+    document.getElementById('initVal').value = '';
     renderInitialCostsList();
 }
 
@@ -92,31 +86,18 @@ function renderInitialCostsList() {
     const el = document.getElementById('initialCostsList');
     if (!t || !el) return;
     el.innerHTML = (t.initialCosts || []).map(c => `
-        <li class="flex justify-between items-center p-2 bg-white border border-[#e2d5b5] rounded shadow-sm">
-            <div class="flex flex-col">
-                <span class="font-bold text-[#2c1a4d]">${c.type}: ${c.desc}</span>
+        <li class="flex justify-between items-center p-2 bg-white border rounded shadow-sm">
+            <span class="font-bold text-[#2c1a4d]">${c.desc}</span>
+            <div class="flex items-center gap-4">
+                <span>${c.currency} ${parseFloat(c.value).toFixed(2)}</span>
+                <button onclick="window.deleteInitialCost('${c.id}')" class="text-red-400 font-bold">×</button>
             </div>
-            <button onclick="window.deleteInitialCost('${c.id}')" class="text-red-400 font-bold">×</button>
         </li>`).join('');
 }
 
 function renderReport() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     if (!t) return;
-    // ... (sua lógica de cálculo de custos continua aqui igual)
-    // Para encurtar, mantive a lógica de somar tudo que você já tinha
     const elTotal = document.getElementById('reportGrandTotal');
     if(elTotal) elTotal.innerText = "Relatório Atualizado"; 
 }
-
-function renderMonthlyReport() {
-    // ... sua lógica de meses continua aqui igual
-}
-
-// IMPORTANTE: EXPOR PARA O HTML NO GITHUB PAGES
-window.openFinanceModal = openFinanceModal;
-window.closeFinanceModal = closeFinanceModal;
-window.switchFinanceTab = switchFinanceTab;
-window.saveRates = saveRates;
-window.addInitialCost = addInitialCost;
-window.deleteInitialCost = deleteInitialCost;

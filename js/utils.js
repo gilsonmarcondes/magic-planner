@@ -44,9 +44,11 @@ export function calculateEndTime(startTime, duration) {
 }
 
 export function closeModals() {
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-    const searchModal = document.getElementById('searchModal');
-    if (searchModal) searchModal.classList.remove('active');
+    // ESTA É A CORREÇÃO MÁGICA QUE FECHA QUALQUER JANELA
+    document.querySelectorAll('.modal').forEach(m => {
+        m.classList.add('hidden');
+        m.classList.remove('active', 'flex');
+    });
 }
 
 export function exportDataAsJson(appData) {
