@@ -87,5 +87,52 @@
     </div>
 
     <script type="module" src="./js/finance.js"></script>
+    <script>
+    // FUNÇÕES GLOBAIS DE CONTROLE DE INTERFACE
+    // Essas funções ficam aqui para garantir que os botões do HTML sempre as encontrem.
+
+    window.openFinanceModal = function() {
+        const modal = document.getElementById('financeModal');
+        if (modal) modal.classList.remove('hidden');
+        // Tenta rodar a lógica de dados se o módulo de finanças estiver carregado
+        if (window.renderFinanceData) window.renderFinanceData();
+    };
+
+    window.closeFinanceModal = function() {
+        const modal = document.getElementById('financeModal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    window.openDocsModal = function() {
+        const modal = document.getElementById('docsModal');
+        if (modal) modal.classList.remove('hidden');
+    };
+
+    window.closeDocsModal = function() {
+        const modal = document.getElementById('docsModal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    // Função genérica para trocar abas
+    window.switchFinanceTab = function(tab) {
+        ['report', 'monthly', 'costs'].forEach(t => {
+            const content = document.getElementById(`tab-${t}`);
+            if (content) content.classList.add('hidden');
+            const btn = document.getElementById(`btn-tab-${t}`);
+            if (btn) {
+                btn.classList.remove('border-blue-600', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            }
+        });
+        
+        const activeContent = document.getElementById(`tab-${tab}`);
+        if (activeContent) activeContent.classList.remove('hidden');
+        const activeBtn = document.getElementById(`btn-tab-${tab}`);
+        if (activeBtn) {
+            activeBtn.classList.add('border-blue-600', 'text-blue-600');
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+        }
+    };
+</script>
 </body>
 </html>
