@@ -117,61 +117,110 @@ function renderInitialCostsList() {
         </li>`).join('');
 }
 
-// --- RELATÓRIO PAGO VS PENDENTE ---
+// --- RELATÓRIO DETALHADO (RESUMO + LISTA) ---
 export async function renderReport() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     if (!t) return;
 
     let res = {
-        pago: { inicial: 0, hoteis: 0, atracoes: 0, total: 0 },
-        pendente: { hoteis: 0, atracoes: 0, total: 0 }
+        pago: { total: 0, itens: [] },
+        pendente: { total: 0, itens: [] }
     };
 
-    (t.initialCosts || []).forEach(c => res.pago.inicial += parseFloat(c.value) * getRate(c.currency));
+    const getRate = (curr) => parseFloat(t.rates?.[curr]) || 1;
 
+    // 1. Custos Iniciais (Considerados Pagos)
+    (t.initialCosts || []).forEach(c => {
+        const valorBRL = parseFloat(c.value || 0) * getRate(c.currency);
+        res.pago.total += valorBRL;
+        res.pago.itens.push({ desc: c.desc, valor: valorBRL, original: `${c.currency} ${c.value}`, cat: '📌 Inicial' });
+    });
+
+    // 2. Hotéis
     (t.hotels || []).forEach(h => {
-        const v = parseFloat(h.cost) * getRate(h.currency);
-        h.paid ? res.pago.hoteis += v : res.pendente.hoteis += v;
+        const valorBRL = parseFloat(h.cost || 0) * getRate(h.currency);
+        const item = { desc: `Hotel: ${h.name}`, valor: valorBRL, original: `${h.currency} ${h.cost}`, cat: '🏨 Hospedagem' };
+        if (h.paid) {
+            res.pago.total += valorBRL;
+            res.pago.itens.push(item);
+        } else {
+            res.pendente.total += valorBRL;
+            res.pendente.itens.push(item);
+        }
     });
 
+    // 3. Atrações e Extras do dia
     (t.days || []).forEach(d => {
+        // Atrações
         d.attractions.forEach(a => {
-            const v = (a.costs || []).reduce((acc, c) => acc + (parseFloat(c.value) * getRate(c.currency)), 0);
-            a.visited ? res.pago.atracoes += v : res.pendente.atracoes += v;
+            const valorBRL = (a.costs || []).reduce((acc, c) => acc + (parseFloat(c.value || 0) * getRate(c.currency)), 0);
+            if (valorBRL > 0) {
+                const item = { desc: a.name, valor: valorBRL, cat: '🏰 Atração' };
+                if (a.visited) {
+                    res.pago.total += valorBRL;
+                    res.pago.itens.push(item);
+                } else {
+                    res.pendente.total += valorBRL;
+                    res.pendente.itens.push(item);
+                }
+            }
         });
-        (d.extraCosts || []).forEach(ex => res.pago.inicial += parseFloat(ex.value) * getRate(ex.currency));
+        // Extras
+        (d.extraCosts || []).forEach(ex => {
+            const valorBRL = parseFloat(ex.value || 0) * getRate(ex.currency);
+            res.pago.total += valorBRL;
+            res.pago.itens.push({ desc: ex.desc, valor: valorBRL, cat: '💸 Extra' });
+        });
     });
 
-    res.pago.total = res.pago.inicial + res.pago.hoteis + res.pago.atracoes;
-    res.pendente.total = res.pendente.hoteis + res.pendente.atracoes;
+    displayFinanceData(res);
+}
 
+function displayFinanceData(res) {
     const container = document.getElementById('tab-report');
     if (!container) return;
 
+    // Função auxiliar para gerar as linhas da lista
+    const renderRows = (itens) => itens.map(i => `
+        <div class="flex justify-between items-center py-2 border-b border-gray-100 text-[11px]">
+            <div class="flex flex-col">
+                <span class="font-bold text-slate-700">${i.desc}</span>
+                <span class="text-[9px] text-slate-400 uppercase">${i.cat} ${i.original ? '| ' + i.original : ''}</span>
+            </div>
+            <span class="font-mono font-bold text-slate-600">R$ ${i.valor.toFixed(2)}</span>
+        </div>
+    `).join('');
+
     container.innerHTML = `
-        <div class="space-y-4">
-            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded shadow-sm">
-                <h4 class="text-emerald-800 font-bold uppercase text-[10px] mb-2 tracking-widest">✅ Já Pago (Realizado)</h4>
-                <div class="space-y-1 text-sm">
-                    <div class="flex justify-between"><span>Custos Iniciais:</span> <span class="font-mono font-bold">R$ ${res.pago.inicial.toFixed(2)}</span></div>
-                    <div class="flex justify-between"><span>Hotéis Pagos:</span> <span class="font-mono font-bold">R$ ${res.pago.hoteis.toFixed(2)}</span></div>
-                    <div class="flex justify-between"><span>Atrações Visitadas:</span> <span class="font-mono font-bold">R$ ${res.pago.atracoes.toFixed(2)}</span></div>
-                    <div class="flex justify-between border-t pt-2 text-emerald-900 font-bold text-lg"><span>TOTAL:</span> <span>R$ ${res.pago.total.toFixed(2)}</span></div>
+        <div class="space-y-6 w-full pb-10">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-emerald-50 p-3 rounded-lg border-l-4 border-emerald-500">
+                    <p class="text-[9px] font-bold text-emerald-700 uppercase">Total Pago</p>
+                    <p class="text-lg font-mono font-bold text-emerald-900">R$ ${res.pago.total.toFixed(2)}</p>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-lg border-l-4 border-amber-500">
+                    <p class="text-[9px] font-bold text-amber-700 uppercase">A Pagar</p>
+                    <p class="text-lg font-mono font-bold text-amber-900">R$ ${res.pendente.total.toFixed(2)}</p>
                 </div>
             </div>
 
-            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow-sm">
-                <h4 class="text-amber-800 font-bold uppercase text-[10px] mb-2 tracking-widest">⏳ Provisionado (Pendente)</h4>
-                <div class="space-y-1 text-sm">
-                    <div class="flex justify-between"><span>Hotéis a Pagar:</span> <span class="font-mono font-bold">R$ ${res.pendente.hoteis.toFixed(2)}</span></div>
-                    <div class="flex justify-between"><span>Atrações a Visitar:</span> <span class="font-mono font-bold">R$ ${res.pendente.atracoes.toFixed(2)}</span></div>
-                    <div class="flex justify-between border-t pt-2 text-amber-900 font-bold text-lg"><span>A PAGAR:</span> <span>R$ ${res.pendente.total.toFixed(2)}</span></div>
+            <div>
+                <h4 class="text-[10px] font-bold text-slate-400 uppercase border-b mb-2 pb-1">📜 Detalhamento: Realizado</h4>
+                <div class="bg-white rounded border px-3 max-h-48 overflow-y-auto">
+                    ${res.pago.itens.length ? renderRows(res.pago.itens) : '<p class="py-4 text-center text-gray-400 text-xs">Nenhum gasto realizado.</p>'}
                 </div>
             </div>
 
-            <div class="bg-slate-800 text-white p-6 rounded-xl text-center shadow-xl">
-                <p class="text-[10px] uppercase opacity-60 tracking-widest mb-1">Custo Total Estimado</p>
-                <h2 class="text-4xl font-bold font-mono text-amber-400">R$ ${(res.pago.total + res.pendente.total).toFixed(2)}</h2>
+            <div>
+                <h4 class="text-[10px] font-bold text-slate-400 uppercase border-b mb-2 pb-1">⏳ Detalhamento: Provisionado</h4>
+                <div class="bg-white rounded border px-3 max-h-48 overflow-y-auto">
+                    ${res.pendente.itens.length ? renderRows(res.pendente.itens) : '<p class="py-4 text-center text-gray-400 text-xs">Tudo pago!</p>'}
+                </div>
+            </div>
+
+            <div class="bg-slate-800 text-white p-5 rounded-xl text-center shadow-lg border-b-4 border-amber-500">
+                <p class="text-[10px] uppercase opacity-60 mb-1">Custo Estimado da Viagem</p>
+                <h2 class="text-4xl font-bold font-mono">R$ ${(res.pago.total + res.pendente.total).toFixed(2)}</h2>
             </div>
         </div>
     `;
