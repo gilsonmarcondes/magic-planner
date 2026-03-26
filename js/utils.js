@@ -43,8 +43,8 @@ export function calculateEndTime(startTime, duration) {
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 }
 
+// ✨ AQUI ESTÁ A CORREÇÃO QUE FECHA AS JANELAS
 export function closeModals() {
-    // ESTA É A CORREÇÃO MÁGICA QUE FECHA QUALQUER JANELA
     document.querySelectorAll('.modal').forEach(m => {
         m.classList.add('hidden');
         m.classList.remove('active', 'flex');
