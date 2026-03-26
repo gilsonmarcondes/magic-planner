@@ -157,9 +157,11 @@
                 <button id="btn-tab-report" onclick="window.switchFinanceTab('report')" class="font-bold text-blue-600 border-b-2 border-blue-600 px-2">Relatório</button>
                 <button id="btn-tab-costs" onclick="window.switchFinanceTab('costs')" class="font-bold text-gray-500 px-2">Custos Iniciais</button>
             </div>
-            <div id="tab-report">
-                <h2 id="reportGrandTotal" class="text-xl font-bold text-red-600 mb-2 text-center">R$ 0,00</h2>
-                <canvas id="financeChart"></canvas>
+            <div id="tab-report" class="flex flex-col items-center w-full">
+                <h2 id="reportGrandTotal" class="text-2xl font-bold text-red-600 mb-4 text-center">R$ 0,00</h2>
+                <div class="relative w-full max-w-xs h-64 flex justify-center">
+                    <canvas id="financeChart"></canvas>
+                </div>
             </div>
             <div id="tab-costs" class="hidden">
                 <div class="flex gap-2 mb-2">
