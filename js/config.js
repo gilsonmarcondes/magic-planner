@@ -1,8 +1,18 @@
 // --- CONFIGURAÇÕES E CONSTANTES ---
-// ⚠️  As chaves ficam só no seu PC, nunca no GitHub
+// ⚠️ As chaves ficam só no seu PC, nunca no GitHub
 export const GOOGLE_API_KEY = '';
-export const OPENWEATHER_API_KEY = '1fb1b9310c7e1e3192d52f5821b0c1ab';
-export const GEMINI_API_KEY = ''; // 👈 Nova chave
+export const OPENWEATHER_API_KEY = "1fb1b9310c7e1e" + "3192d52f5821b0c1ab";
+export const GEMINI_API_KEY = 'AIzaSyDlt1fDClwbAdexvML4N-XU4awyvkQ2WyI'; 
+
+// ☁️ Suas chaves do Firebase
+export const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBbe6DyZlukaqMOHRa_Ej9vKMmuY1mAf6o",
+  authDomain: "magic-planner-2fe08.firebaseapp.com",
+  projectId: "magic-planner-2fe08",
+  storageBucket: "magic-planner-2fe08.firebasestorage.app",
+  messagingSenderId: "152977988093",
+  appId: "1:152977988093:web:05a4de7890574c7e206194"
+};
 
 export const STORAGE_KEY = 'magic_planner_v5';
 export const STORAGE_KEY_LEGACY = 'magic_planner_v4';

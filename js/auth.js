@@ -1,57 +1,22 @@
-// --- AUTENTICAÇÃO FIREBASE ---
-import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from './firebase.js';
+import { auth, provider } from './firebase.js';
+import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { loadData } from './store.js';
 
+// EXPORTAÇÃO DO USUÁRIO
 export let currentUser = null;
 
-export function initAuth(onLoginSuccess) {
-    const loginScreen = document.getElementById('loginScreen');
-    const btnLogin = document.getElementById('btnLogin');
-    const loginLoading = document.getElementById('loginLoading');
-
-    // Fica "escutando" para ver se o usuário logou ou deslogou
+export function initAuth(onSuccessCallback) {
     onAuthStateChanged(auth, (user) => {
+        currentUser = user; // Atualiza quem está logado
         if (user) {
-            // Está logado! Salva quem é o usuário
-            currentUser = user;
-            
-            // Esconde a tela de login com um efeito de fade
-            if (loginScreen) {
-                loginScreen.classList.add('opacity-0');
-                setTimeout(() => loginScreen.classList.add('hidden'), 500);
-            }
-            
-            // Avisa o main.js que pode carregar o aplicativo
-            onLoginSuccess();
+            console.log("Logado como:", user.displayName);
+            if (onSuccessCallback) onSuccessCallback(); 
         } else {
-            // Não está logado! Mostra a tela de login.
-            currentUser = null;
-            if (loginScreen) loginScreen.classList.remove('hidden', 'opacity-0');
-            if (btnLogin) btnLogin.classList.remove('hidden');
-            if (loginLoading) loginLoading.classList.add('hidden');
+            if (window.render) window.render(); // Volta para a tela de login
         }
     });
-
-    // Configura o clique do botão "Entrar com o Google"
-    if (btnLogin) {
-        btnLogin.onclick = async () => {
-            btnLogin.classList.add('hidden');
-            loginLoading.classList.remove('hidden');
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error("Erro ao logar:", error);
-                alert("Falha ao entrar com o Google. Tente novamente.");
-                btnLogin.classList.remove('hidden');
-                loginLoading.classList.add('hidden');
-            }
-        };
-    }
 }
 
-export function logoutUser() {
-    if (confirm("Deseja mesmo sair da sua conta?")) {
-        signOut(auth).then(() => {
-            window.location.reload(); // Recarrega a página para voltar à tela de login
-        });
-    }
-}
+// Outras exportações necessárias
+export const loginUser = () => signInWithPopup(auth, provider);
+export const logoutUser = () => signOut(auth);

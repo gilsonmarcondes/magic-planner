@@ -176,4 +176,6 @@ export function generateVisitedKML() {
     a.click();
 }
 
-export function generateICS() {}
+export function generateICS() {
+    alert("📅 A exportação para o calendário (ICS) será ativada na próxima atualização. Por enquanto, utilize o Calendário em PDF!");
+}
