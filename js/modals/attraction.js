@@ -122,50 +122,65 @@ function addTempCostRow(d='', v='', c='BRL') {
 }
 
 export async function saveAttraction() {
-    const name = document.getElementById('attName').value;
-    if (!name) return alert('Nome é obrigatório');
-
+    // 1. Encontra a viagem e o dia atual
     const t = appData.trips.find(x => x.id === currentState.tripId);
+    if (!t) return;
     const d = t.days.find(x => x.id === currentState.dayId);
-    
-    const quill = getAttractionQuill();
-    const desc = quill ? quill.root.innerHTML : '';
-    
-    const costs = Array.from(document.querySelectorAll('.cost-row')).map(row => ({
-        desc: row.querySelector('.cost-desc').value,
-        value: row.querySelector('.cost-val').value,
-        currency: row.querySelector('.cost-cur').value
-    }));
+    if (!d) return;
 
-    const photosRaw = document.getElementById('attPhotos').value.trim();
-    const photos = photosRaw ? photosRaw.split('\n').map(url => url.trim()) : [];
+    const name = document.getElementById('attName').value.trim();
+    if (!name) {
+        alert('Dê um nome para a atração antes de salvar!');
+        return;
+    }
 
-    const attData = {
-        id: currentAttractionId || randomId(),
-        name,
+    // 2. A MÁGICA DOS CUSTOS: Varre a tela e coleta tudo
+    const newCosts = [];
+    document.querySelectorAll('#tempCostList .cost-item').forEach(el => {
+        const desc = el.querySelector('.cost-desc').value.trim();
+        const value = el.querySelector('.cost-val').value;
+        const currency = el.querySelector('.cost-cur').value;
+        const paid = el.querySelector('.cost-paid').checked; // Lê se está pago ou não
+        
+        // Só salva se tiver um valor preenchido maior que zero
+        if (value && parseFloat(value) > 0) {
+            newCosts.push({ desc, value, currency, paid });
+        }
+    });
+
+    // 3. Monta o objeto completo da atração
+    const attId = document.getElementById('attractionModal').dataset.editingId;
+    const attractionData = {
+        id: attId || Math.random().toString(36).substr(2, 9),
+        name: name,
         subtitle: document.getElementById('attSubtitle').value,
         type: document.getElementById('attType').value,
         priority: document.getElementById('attPriority').value,
         hours: document.getElementById('attHours').value,
+        mapNum: document.getElementById('attMapNum').value,
         address: document.getElementById('attAddress').value,
-        mapNumber: document.getElementById('attMapNum').value,
-        description: desc,
-        costs,
-        photos,
+        photos: document.getElementById('attPhotos').value.split('\n').filter(p => p.trim() !== ''),
+        desc: window.quill ? window.quill.root.innerHTML : document.getElementById('attDescEditor').innerHTML,
+        costs: newCosts, // <-- AQUI! Passamos a lista de custos para o objeto
         visited: false
     };
 
-    if (currentAttractionId) {
-        const idx = d.attractions.findIndex(x => String(x.id) === String(currentAttractionId));
-        attData.visited = d.attractions[idx].visited;
-        d.attractions[idx] = attData;
+    // 4. Salva ou Atualiza
+    if (attId) {
+        const idx = d.attractions.findIndex(a => a.id === attId);
+        if (idx > -1) {
+            // Se já existia, mantém o status de visitado intacto
+            attractionData.visited = d.attractions[idx].visited;
+            d.attractions[idx] = attractionData;
+        }
     } else {
-        d.attractions.push(attData);
+        d.attractions.push(attractionData);
     }
 
-    await saveData(); // Agora o saveData é assíncrono (nuvem)
-    closeModals();
-    window.render();
+    // 5. Salva no banco e atualiza a tela
+    await saveData();
+    window.closeModals();
+    window.render(); 
 }
 
 // Expõe para o window apenas o necessário para os botões do modal
