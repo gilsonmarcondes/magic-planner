@@ -13,7 +13,7 @@ import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
 
 // Modals
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
-// AQUI: Importamos o calcTransportRoute e o saveTransport corretos
+// AQUI: Importamos as funções do novo Bilhete Nível Google Maps
 import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
 import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
 import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport } from './modals/finance.js';
@@ -47,13 +47,13 @@ Object.assign(window, {
     
     // Modals: Attraction & Transport
     openAttractionModal, saveAttraction, addTempCost,
-    // AQUI: Trocamos saveRoute por saveTransport e adicionamos calcTransportRoute
+    // AQUI: Exposição das funções de transporte para os botões do HTML
     openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport,
     
     // Modals: Hotels
     openHotelManager, saveHotel, editHotel, deleteHotel,
     
-    // Modals: Finance (Novas funções inclusas aqui!)
+    // Modals: Finance
     openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport,
     
     // Modals: Misc
