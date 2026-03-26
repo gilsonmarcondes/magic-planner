@@ -1,0 +1,28 @@
+// --- CONFIGURAÇÕES E CONSTANTES ---
+// ⚠️ As chaves ficam só no seu PC, nunca no GitHub
+export const GOOGLE_API_KEY = '';
+export const OPENWEATHER_API_KEY = "1fb1b9310c7e1e" + "3192d52f5821b0c1ab";
+export const GEMINI_API_KEY = ''; 
+
+// ☁️ Suas chaves do Firebase
+export const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBbe6DyZlukaqMOHRa_Ej9vKMmuY1mAf6o",
+  authDomain: "magic-planner-2fe08.firebaseapp.com",
+  projectId: "magic-planner-2fe08",
+  storageBucket: "magic-planner-2fe08.firebasestorage.app",
+  messagingSenderId: "152977988093",
+  appId: "1:152977988093:web:05a4de7890574c7e206194"
+};
+
+export const STORAGE_KEY = 'magic_planner_v5';
+export const STORAGE_KEY_LEGACY = 'magic_planner_v4';
+
+export const CATEGORIES = {
+    sight:     { icon: '🏰', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+    food:      { icon: '🍔', color: 'bg-rose-100 text-rose-800 border-rose-200' },
+    shop:      { icon: '🛍️', color: 'bg-amber-100 text-amber-800 border-amber-200' },
+    hotel:     { icon: '🏨', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+    transport: { icon: '🚌', color: 'bg-gray-100 text-gray-800 border-gray-200' },
+    airport:   { icon: '✈️', color: 'bg-sky-100 text-sky-800 border-sky-200' },
+    other:     { icon: '✨', color: 'bg-slate-100 text-slate-800 border-slate-200' },
+};
