@@ -142,56 +142,52 @@
     </div>
 
     <div id="financeModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-lg p-6">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="font-magic text-2xl text-[#0c4a6e] font-bold">💰 Finanças</h3>
-                <button onclick="window.closeModals()" class="text-gray-400 text-2xl font-bold">&times;</button>
+    <div class="modal-content w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-lg p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-6 border-b pb-2">
+            <h3 class="font-magic text-2xl text-[#0c4a6e] font-bold uppercase">💰 Controle Financeiro</h3>
+            <button onclick="window.closeModals()" class="text-gray-400 text-3xl font-bold hover:text-red-500">&times;</button>
+        </div>
+
+        <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100">
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-blue-800">Libra (£)</label>
+                    <input id="rateGBP" placeholder="0.00" class="border p-2 rounded w-full font-mono text-sm">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-blue-800">Euro (€)</label>
+                    <input id="rateEUR" placeholder="0.00" class="border p-2 rounded w-full font-mono text-sm">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-blue-800">Dólar ($)</label>
+                    <input id="rateUSD" placeholder="0.00" class="border p-2 rounded w-full font-mono text-sm">
+                </div>
             </div>
-            
-            <div class="space-y-4 mb-6">
-    <div class="flex gap-2">
-        <div class="flex-1">
-            <label class="text-[10px] uppercase font-bold text-gray-400">Libra (£)</label>
-            <input id="rateGBP" placeholder="0.00" class="border p-2 rounded w-full font-mono">
+            <div class="flex gap-2">
+                <button onclick="window.saveRates()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold text-xs shadow hover:bg-blue-700 transition">💾 Salvar Câmbio</button>
+                <button id="btnSyncRates" onclick="window.syncHistoricalRates()" class="flex-1 bg-white text-indigo-700 border border-indigo-200 py-2 rounded font-bold text-[10px] hover:bg-indigo-50 transition">🔄 Sincronizar por Datas</button>
+            </div>
         </div>
-        <div class="flex-1">
-            <label class="text-[10px] uppercase font-bold text-gray-400">Euro (€)</label>
-            <input id="rateEUR" placeholder="0.00" class="border p-2 rounded w-full font-mono">
+
+        <div class="flex gap-4 border-b mb-4">
+            <button id="btn-tab-report" onclick="window.switchFinanceTab('report')" class="pb-2 font-bold text-sm uppercase tracking-wider border-b-2 border-blue-600 text-blue-600">Resumo da Viagem</button>
+            <button id="btn-tab-costs" onclick="window.switchFinanceTab('costs')" class="pb-2 font-bold text-sm uppercase tracking-wider text-gray-400">Custos Iniciais</button>
         </div>
-        <div class="flex-1">
-            <label class="text-[10px] uppercase font-bold text-gray-400">Dólar ($)</label>
-            <input id="rateUSD" placeholder="0.00" class="border p-2 rounded w-full font-mono">
+
+        <div id="tab-report" class="space-y-4">
+            </div>
+
+        <div id="tab-costs" class="hidden">
+            <div class="flex gap-2 mb-4 bg-gray-50 p-3 rounded border">
+                <input id="initDesc" placeholder="Ex: Passagem, Seguro..." class="flex-1 p-2 border rounded text-sm">
+                <input id="initVal" type="number" placeholder="0.00" class="w-24 p-2 border rounded text-sm font-mono">
+                <select id="initCurr" class="p-2 border rounded text-sm bg-white"><option>BRL</option><option>GBP</option><option>EUR</option><option>USD</option></select>
+                <button onclick="window.addInitialCost()" class="bg-green-600 text-white px-4 rounded font-bold hover:bg-green-700">+</button>
+            </div>
+            <ul id="initialCostsList" class="space-y-2 max-h-60 overflow-y-auto"></ul>
         </div>
-    </div>
-    
-    <div class="flex gap-2">
-        <button onclick="window.saveRates()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold text-sm shadow">💾 Salvar Cotações</button>
-        <button id="btnSyncRates" onclick="window.syncHistoricalRates()" class="flex-1 bg-indigo-50 text-indigo-700 border border-indigo-200 py-2 rounded font-bold text-xs hover:bg-indigo-100 transition">🔄 Sincronizar por Datas</button>
     </div>
 </div>
-            
-            
-            <div class="flex gap-2 mb-4">
-                <button id="btn-tab-report" onclick="window.switchFinanceTab('report')" class="font-bold text-blue-600 border-b-2 border-blue-600 px-2">Relatório</button>
-                <button id="btn-tab-costs" onclick="window.switchFinanceTab('costs')" class="font-bold text-gray-500 px-2">Custos Iniciais</button>
-            </div>
-            <div id="tab-report" class="flex flex-col items-center w-full">
-                <h2 id="reportGrandTotal" class="text-2xl font-bold text-red-600 mb-4 text-center">R$ 0,00</h2>
-                <div class="relative w-full max-w-xs h-64 flex justify-center">
-                    <canvas id="financeChart"></canvas>
-                </div>
-            </div>
-            <div id="tab-costs" class="hidden">
-                <div class="flex gap-2 mb-2">
-                    <input id="initDesc" placeholder="Descrição" class="border p-2 rounded flex-1">
-                    <input id="initVal" type="number" placeholder="Valor" class="border p-2 rounded w-24">
-                    <select id="initCurr" class="border p-2 rounded"><option>BRL</option><option>GBP</option><option>EUR</option></select>
-                    <button onclick="window.addInitialCost()" class="bg-green-600 text-white px-4 rounded font-bold">+</button>
-                </div>
-                <ul id="initialCostsList" class="space-y-2"></ul>
-            </div>
-        </div>
-    </div>
 
     <div id="documentsModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
         <div class="modal-content w-full max-w-lg bg-white rounded-lg p-6"><h3 class="font-magic text-2xl mb-4">📂 Documentos</h3><button onclick="window.closeModals()" class="w-full bg-blue-100 py-3 rounded">Fechar</button></div>
