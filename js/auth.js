@@ -4,7 +4,6 @@ import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } fr
 export let currentUser = null;
 export let authInitialized = false;
 
-// 🛑 SUA LISTA VIP DEFINITIVA
 const VIP_LIST = [
     'gilsonmarcondes@gmail.com', 
     'gilson.marcondes@unesp.br',
@@ -14,11 +13,10 @@ const VIP_LIST = [
 export function initAuth(onSuccessCallback) {
     console.log("🚀 Auth: Observador iniciado.");
 
-    // Essencial para que o login funcione no celular
     getRedirectResult(auth).catch((error) => console.error("Erro no redirect:", error));
 
     onAuthStateChanged(auth, (user) => {
-        authInitialized = true; // Avisa que o carregamento acabou
+        authInitialized = true;
         
         if (user) {
             const email = user.email.toLowerCase().trim();
@@ -27,7 +25,7 @@ export function initAuth(onSuccessCallback) {
                 console.log("✅ VIP Confirmado:", email);
                 if (onSuccessCallback) onSuccessCallback();
             } else {
-                console.warn("🚫 Acesso negado para:", email);
+                console.warn("🚫 Não autorizado:", email);
                 currentUser = { isBarrado: true, email: email }; 
             }
         } else {
@@ -35,7 +33,6 @@ export function initAuth(onSuccessCallback) {
             currentUser = null;
         }
 
-        // Força a atualização da tela no roteador
         if (window.render) window.render();
     });
 }

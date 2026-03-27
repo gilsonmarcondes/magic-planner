@@ -15,11 +15,10 @@ export function openTrip(id) { goTo('trip', id); }
 export function openDay(tripId, dayId) { goTo('day', tripId, dayId); }
 
 export function render() {
-    console.log("🎨 Router: Renderizando tela...");
     const app = document.getElementById('app');
     if (!app) return;
 
-    // 1. ESTÁGIO DE CARREGAMENTO
+    // 1. ESTÁGIO DE CARREGAMENTO (Espera o Firebase responder)
     if (!authInitialized) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh]">
@@ -29,9 +28,8 @@ export function render() {
         return;
     }
 
-    // 2. TELA DE LOGIN (Se não houver usuário)
+    // 2. TELA DE LOGIN (Ninguém logado)
     if (!currentUser) {
-        console.log("👉 Mostrando tela de Login");
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
                 <div class="text-center bg-white p-10 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100">
@@ -48,16 +46,15 @@ export function render() {
         return; 
     }
 
-    // 3. ACESSO NEGADO (Se for barrado ou não for VIP)
-    if (currentUser.isBarrado || currentUser.status === "BARRADO") {
-        const emailExibir = currentUser.email || "E-mail desconhecido";
+    // 3. ACESSO INTERDITADO (Logado, mas não autorizado)
+    if (currentUser.isBarrado) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
                 <div class="text-center bg-red-50 p-10 rounded-3xl shadow-2xl max-w-sm w-full border-2 border-red-200">
                     <span class="text-8xl mb-6 block">🚫</span>
                     <h1 class="font-magic text-3xl text-red-700 mb-4 uppercase font-bold text-center">Acesso Interditado</h1>
                     <p class="text-sm text-red-800 mb-10 font-mono text-center">
-                        O e-mail <br><b class="text-blue-900">${emailExibir}</b><br> não está na lista VIP desta missão.
+                        O e-mail <br><b class="text-blue-900 break-all">${currentUser.email}</b><br> não está na lista VIP desta missão.
                     </p>
                     <button onclick="window.logoutUser()" class="w-full bg-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:bg-red-700 transition active:scale-95 uppercase tracking-widest text-xs">
                         Trocar de Conta
@@ -69,15 +66,25 @@ export function render() {
         return; 
     }
 
-    // 4. ACESSO LIBERADO (Renderização das Páginas)
+    // 4. ACESSO LIBERADO (Renderização normal das páginas)
     app.innerHTML = '';
     const scrollY = window.scrollY;
     
     switch (currentState.page) {
-        case 'home': import('./views/home.js').then(m => m.renderHome(app)); break;
-        case 'trip': import('./views/trip.js').then(m => m.renderTrip(app, currentState.tripId)); break;
-        case 'day':  import('./views/day.js').then(m => { m.renderDay(app, currentState.tripId, currentState.dayId); requestAnimationFrame(() => window.scrollTo(0, scrollY)); }); break;
-        default:     import('./views/home.js').then(m => m.renderHome(app));
+        case 'home': 
+            import('./views/home.js').then(m => m.renderHome(app)); 
+            break;
+        case 'trip': 
+            import('./views/trip.js').then(m => m.renderTrip(app, currentState.tripId)); 
+            break;
+        case 'day':  
+            import('./views/day.js').then(m => { 
+                m.renderDay(app, currentState.tripId, currentState.dayId); 
+                requestAnimationFrame(() => window.scrollTo(0, scrollY)); 
+            }); 
+            break;
+        default:     
+            import('./views/home.js').then(m => m.renderHome(app));
     }
 
     const nav = document.getElementById('bottomNav');
@@ -86,4 +93,8 @@ export function render() {
         nav.classList.toggle('hidden', isHiddenPage);
         nav.style.display = isHiddenPage ? 'none' : 'flex';
     }
+}
+
+export function renderNewTrip(container) {
+    container.innerHTML = `<div class="card p-8 max-w-lg mx-auto mt-10 bg-white rounded-3xl shadow-xl border border-gray-100 text-center"><h2 class="text-3xl font-magic mb-8 uppercase text-[#0c4a6e] font-bold">Nova Aventura</h2><button onclick="window.createTrip()" class="bg-[#0c4a6e] text-white p-3 rounded-lg w-full font-bold uppercase text-xs">Criar</button></div>`;
 }
