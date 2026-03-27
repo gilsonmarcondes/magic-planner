@@ -56,7 +56,7 @@ Object.assign(window, {
 // --- INICIALIZAÇÃO ---
 function init() {
     console.log("🚀 Sistema: Iniciando motor principal...");
-    render(); // Mostra o carregamento inicial
+    render(); 
 
     initAuth(() => {
         console.log("✅ Usuário VIP detectado. Carregando dados...");
@@ -75,6 +75,6 @@ function init() {
             render(); 
         }
     });
-} // <--- ESTA CHAVE ESTAVA FALTANDO!
+}
 
 document.addEventListener('DOMContentLoaded', init);

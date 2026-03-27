@@ -4,7 +4,6 @@ import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } fr
 export let currentUser = null;
 export let authInitialized = false;
 
-// 🛑 LISTA VIP ÚNICA
 const VIP_LIST = [
     'gilsonmarcondes@gmail.com', 
     'gilson.marcondes@unesp.br',
@@ -12,8 +11,6 @@ const VIP_LIST = [
 ];
 
 export function initAuth(onSuccessCallback) {
-    console.log("🚀 Auth: Observador configurado.");
-
     onAuthStateChanged(auth, (user) => {
         authInitialized = true;
         
