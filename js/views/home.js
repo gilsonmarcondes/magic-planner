@@ -1,7 +1,8 @@
+// --- VIEW: HOME ---
 import { appData, saveData } from '../store.js';
 import { render, goTo } from '../router.js';
+import { randomId } from '../utils.js';
 
-// Substitua a função renderHome no seu home.js por esta completa:
 export function renderHome() {
     if (!appData.trips) appData.trips = [];
     
@@ -10,20 +11,21 @@ export function renderHome() {
             <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                 <h2 class="text-2xl font-bold text-[#0c4a6e]">Minhas Viagens</h2>
                 <div class="flex gap-2">
-                    <button onclick="window.openTripModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition shadow flex items-center">
+                    <button onclick="window.openTripModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition shadow text-sm md:text-base flex items-center">
                         <span class="text-white font-bold mr-2 text-xl">+</span> Nova Viagem
                     </button>
-                    <label class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition shadow cursor-pointer text-sm">
+                    <label class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition shadow cursor-pointer text-sm md:text-base">
                         📂 Importar Backup
                         <input type="file" accept=".json" class="hidden" onchange="window.importData(event)">
                     </label>
                 </div>
             </div>
+            
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     `;
 
     if (appData.trips.length === 0) {
-        html += `<div class="col-span-full text-center text-gray-500 py-10 bg-gray-50 rounded-lg border border-dashed">Nenhuma viagem encontrada.</div>`;
+        html += `<div class="col-span-full text-center text-gray-500 py-10 bg-gray-50 rounded-lg border border-dashed">Nenhuma viagem encontrada. Crie uma nova ou importe o seu arquivo JSON!</div>`;
     } else {
         appData.trips.forEach(t => {
             html += `
@@ -40,31 +42,39 @@ export function renderHome() {
     }
 
     html += `</div></div>`;
-    document.getElementById('app').innerHTML = html;
+    
+    const appEl = document.getElementById('app');
+    if (appEl) appEl.innerHTML = html;
+    
+    return html;
 }
-
-export async function createTrip() {} // Usamos o modal em modals/trip.js
 
 export async function importData(event) {
     const file = event.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = async (e) => {
         try {
             const imported = JSON.parse(e.target.result);
-            if (imported.trips) {
+            if (imported && imported.trips) {
                 appData.trips = imported.trips;
-                await saveData();
-                alert('✅ Backup importado!');
+                await saveData(); 
+                alert('✅ Mágica feita! Viagens importadas e salvas na nuvem com sucesso!');
                 render();
+            } else {
+                alert('Arquivo inválido: Não encontramos a lista de viagens.');
             }
-        } catch (err) { alert('Erro ao ler JSON.'); }
+        } catch (err) {
+            console.error('Erro na leitura:', err);
+            alert('Erro ao ler o arquivo. Verifique se é um JSON válido.');
+        }
     };
     reader.readAsText(file);
 }
 
 export async function deleteTrip(id) {
-    if (!confirm('Excluir permanentemente?')) return;
+    if (!confirm('Tem certeza que deseja excluir esta viagem permanentemente?')) return;
     appData.trips = appData.trips.filter(x => x.id !== id);
     await saveData();
     render();

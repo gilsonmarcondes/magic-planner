@@ -33,7 +33,6 @@ export function openAttractionModal(id = null) {
     const quill = getAttractionQuill();
     const content = a ? (a.description || a.desc || '') : '';
     if (quill) {
-        // Usa o método oficial do Quill para não quebrar o sincronismo interno
         quill.clipboard.dangerouslyPasteHTML(content);
     } else {
         document.getElementById('attDescEditor').innerHTML = content;
@@ -47,7 +46,6 @@ export function openAttractionModal(id = null) {
 
     modal.classList.remove('hidden');
 
-    // Inicializa o Autocomplete do Google
     if (window.google && !document.getElementById('attAddress').dataset.autocompleteBound) {
         const input = document.getElementById('attAddress');
         const autocomplete = new google.maps.places.Autocomplete(input);
@@ -61,7 +59,6 @@ export function openAttractionModal(id = null) {
 }
 
 // 2. CRIAR LINHAS DE CUSTO
-// 2. CRIAR LINHAS DE CUSTO (Com visual corrigido)
 export function addTempCost(desc = '', value = '', currency = 'USD', paid = false) {
     const list = document.getElementById('tempCostList');
     if (!list) return;
@@ -116,7 +113,6 @@ export async function saveAttraction() {
     const modal = document.getElementById('attractionModal');
     const attId = modal.dataset.editingId;
 
-    // --- CORREÇÃO DO QUILL: Resgate Seguro ---
     const quill = getAttractionQuill();
 
     const attractionData = {

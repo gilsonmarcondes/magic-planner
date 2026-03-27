@@ -1,24 +1,32 @@
-import { appData, currentState, saveData, currentInlineModes } from '../store.js';
+import { appData, currentState, saveData, currentInlineModes, setCurrentInlineModes } from '../store.js';
 import { OPENWEATHER_API_KEY } from '../config.js';
 
 let cityAutocompleteInstance = null;
+let originAutocompleteInstance = null;
 
 export function openCitySearch() {
     const modal = document.getElementById('citySearchModal');
     if (modal) modal.classList.remove('hidden');
+    
     if (!cityAutocompleteInstance && window.google) {
         const input = document.getElementById('citySearchInput');
-        if (input) cityAutocompleteInstance = new google.maps.places.Autocomplete(input, { types: ['(cities)'] });
+        if (input) {
+            cityAutocompleteInstance = new google.maps.places.Autocomplete(input, { types: ['(cities)'] });
+        }
     }
 }
 
 export async function addLocation() {
     const input = document.getElementById('citySearchInput');
-    if (!input?.value) return;
+    const cityName = input?.value;
+    if (!cityName) return;
+
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
+    
     if (!d.locations) d.locations = [];
-    d.locations.push({ name: input.value });
+    d.locations.push({ name: cityName });
+    
     input.value = '';
     await saveData();
     window.render();
@@ -32,20 +40,27 @@ export async function removeLocation(name) {
     window.render();
 }
 
+// 🌦️ FUNÇÃO DE CLIMA ATUALIZADA (Com Trava Inteligente de 5 dias)
 export async function fetchWeather() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
+    
     if (!d.locations || d.locations.length === 0) return alert('Adicione uma cidade primeiro.');
 
     if (d.date) {
         const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
+        hoje.setHours(0, 0, 0, 0); 
+        
         const dataViagem = new Date(d.date + "T00:00:00");
-        const diffDias = Math.ceil((dataViagem - hoje) / (1000 * 60 * 60 * 24));
+        const diffTempo = dataViagem - hoje;
+        const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
         if (diffDias > 5) {
-            const dataLib = new Date(dataViagem);
-            dataLib.setDate(dataLib.getDate() - 5);
-            return alert(`📅 Previsão disponível a partir de ${dataLib.toLocaleDateString('pt-BR')}.`);
+            const dataLiberacao = new Date(dataViagem);
+            dataLiberacao.setDate(dataLiberacao.getDate() - 5);
+            return alert(`📅 Cedo demais! A previsão para ${d.locations[0].name.split(',')[0]} só estará disponível a partir de ${dataLiberacao.toLocaleDateString('pt-BR')}.`);
+        } else if (diffDias < 0) {
+            return alert(`⏳ Esse dia já passou! Não consigo buscar o clima de datas retroativas.`);
         }
     }
 
@@ -55,31 +70,53 @@ export async function fetchWeather() {
     try {
         const res = await fetch(url);
         const data = await res.json();
+        
         if (data.list) {
             const proximas24h = data.list.slice(0, 8);
-            let html = `<div class="flex overflow-x-auto gap-2 py-2 mt-2">`;
+            let html = `<div class="flex overflow-x-auto gap-2 py-2 mt-2" style="scrollbar-width: none; -ms-overflow-style: none;">`;
+            
             proximas24h.forEach(item => {
+                const date = new Date(item.dt * 1000);
+                const hours = date.getHours().toString().padStart(2, '0') + ':00';
                 const temp = Math.round(item.main.temp);
                 const icon = `https://openweathermap.org/img/wn/${item.weather[0].icon}.png`;
-                html += `<div class="flex flex-col items-center bg-white/60 p-2 min-w-[65px]"><span class="text-[11px] font-bold">${temp}°</span><img src="${icon}" class="w-8 h-8"></div>`;
+                const desc = item.weather[0].description;
+                
+                html += `
+                    <div class="flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm border border-blue-100/50 rounded-lg p-2 min-w-[65px] shrink-0">
+                        <span class="text-[9px] font-bold text-slate-500">${hours}</span>
+                        <img src="${icon}" alt="${desc}" title="${desc}" class="w-8 h-8 drop-shadow-sm -my-1">
+                        <span class="text-[11px] font-bold text-slate-800">${temp}°</span>
+                    </div>
+                `;
             });
             html += `</div>`;
+
             d.weather = html;
             await saveData();
             window.render();
+        } else {
+            alert('Cidade não encontrada ou erro na API.');
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error('Erro clima:', e); 
+        alert('Erro ao conectar com o servidor de clima.');
+    }
 }
 
 export function openFullDayRoute() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
+    
     const waypoints = d.attractions.map(a => a.address).filter(a => !!a);
-    if (waypoints.length < 2) return alert('Faltam endereços.');
+    if (waypoints.length < 2) return alert('É necessário pelo menos 2 endereços nas atrações para traçar uma rota.');
+    
     const origin = waypoints.shift();
     const destination = waypoints.pop();
     const wpString = waypoints.length > 0 ? `&waypoints=${waypoints.map(encodeURIComponent).join('|')}` : '';
-    window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${wpString}&travelmode=walking`, '_blank');
+    
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${wpString}&travelmode=walking`;
+    window.open(url, '_blank');
 }
 
 export function initOriginAutocomplete(id) {
@@ -95,12 +132,18 @@ export function calcInlineRoute(id) {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
     const a = d.attractions.find(x => String(x.id) === String(id));
+    
     const origin = document.getElementById(`origin-${id}`).value;
-    if (!origin || !a.address) return alert('Preencha origem e destino.');
+    const modeMap = { 'd': 'DRIVING', 't': 'TRANSIT', 'w': 'WALKING' };
+    const mode = modeMap[currentInlineModes[id] || 'd'];
+
+    if (!origin || !a.address) return alert('Preencha a origem e o endereço da atração.');
+
     const frame = document.getElementById(`map-frame-${id}`);
     const container = document.getElementById(`map-container-${id}`);
+    
     const apiKey = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]').src.match(/key=([^&]+)/)[1];
-    frame.src = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&mode=walking`;
+    frame.src = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&mode=${mode.toLowerCase()}`;
     container.classList.remove('hidden');
 }
 
@@ -109,17 +152,41 @@ export function openGPSRoute(id) {
     const d = t.days.find(x => x.id === currentState.dayId);
     const a = d.attractions.find(x => String(x.id) === String(id));
     const origin = document.getElementById(`origin-${id}`).value || 'My Location';
-    window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&travelmode=walking`, '_blank');
+    
+    const modeMap = { 'd': 'driving', 't': 'transit', 'w': 'walking' };
+    const mode = modeMap[currentInlineModes[id] || 'd'];
+    
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&travelmode=${mode}`;
+    window.open(url, '_blank');
 }
 
 export function useMyLocation(id) {
     if (navigator.geolocation) {
+        const btn = document.getElementById(`gps-btn-${id}`);
+        const originalText = btn.innerText;
+        btn.innerText = '⌛ Localizando...';
+        
         navigator.geolocation.getCurrentPosition((pos) => {
+            const latlng = `${pos.coords.latitude},${pos.coords.longitude}`;
             const input = document.getElementById(`origin-${id}`);
-            if (input) input.value = `${pos.coords.latitude},${pos.coords.longitude}`;
+            if (input) input.value = latlng;
+            btn.innerText = '📍 Localização capturada!';
+            setTimeout(() => btn.innerText = originalText, 2000);
+        }, (err) => {
+            console.error(err);
+            btn.innerText = '❌ Erro ao localizar';
+            setTimeout(() => btn.innerText = originalText, 2000);
         });
+    } else {
+        alert("Geolocalização não suportada pelo seu navegador.");
     }
 }
 
-export function openRadarModal() { alert("📡 Radar em calibração..."); }
-export function scanRadar() { console.log("Escaneando..."); }
+// --- FUNÇÕES DO RADAR ---
+export function openRadarModal() {
+    alert("📡 O Radar de Atrações está sendo calibrado! Em breve você poderá localizar pontos de interesse próximos a você...");
+}
+
+export function scanRadar() {
+    console.log("Escaneando área próxima...");
+}
