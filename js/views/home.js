@@ -50,15 +50,16 @@ export function renderHome() {
     if (appEl) appEl.innerHTML = html;
 }
 
-// --- FUNÇÕES EXPORTADAS PARA O MAIN.JS ---
+// --- FUNÇÕES EXPORTADAS (O que o main.js está a pedir) ---
 
+// Esta é a função 'createTrip' que estava a faltar!
 export function createTrip() {
-    // No seu sistema, o modal de criação está no index.html e é controlado pelo main/trip
     if (typeof window.openTripModal === 'function') {
         window.openTripModal();
     }
 }
 
+// Esta é a 'editTripMetadata' que o main.js também precisa
 export function editTripMetadata(id) {
     if (typeof window.openTripModal === 'function') {
         window.openTripModal(id);
@@ -66,7 +67,7 @@ export function editTripMetadata(id) {
 }
 
 export async function deleteTrip(id) {
-    if (!confirm('Tem certeza que deseja apagar esta viagem para sempre?')) return;
+    if (!confirm('Tem certeza que deseja apagar esta viagem?')) return;
     appData.trips = appData.trips.filter(t => t.id !== id);
     await saveData();
     render();
@@ -75,7 +76,6 @@ export async function deleteTrip(id) {
 export async function importData(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = async (e) => {
         try {
@@ -83,12 +83,9 @@ export async function importData(event) {
             if (imported.trips) {
                 appData.trips = imported.trips;
                 await saveData();
-                alert('Backup importado com sucesso!');
                 render();
             }
-        } catch (err) {
-            alert('Erro ao ler o arquivo de backup.');
-        }
+        } catch (err) { alert('Erro no backup'); }
     };
     reader.readAsText(file);
 }
