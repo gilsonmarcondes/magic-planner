@@ -1,54 +1,78 @@
-// --- MAIN.JS: O MAESTRO DO SISTEMA ---
-import { auth, provider } from './firebase.js';
-import { onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { loadData } from './store.js';
+import { loadData, saveData, appData, setAttractionQuill } from './store.js';
+import { render, goTo, openTrip, openDay }   from './router.js';
+import { exportDataAsJson, closeModals }     from './utils.js';
+import { initAuth, loginUser, logoutUser } from './auth.js';
 
-// Importação das funcionalidades de outros arquivos
-import { openTripModal, saveTrip, deleteTrip } from './modals/trip.js';
-import { openDayModal, saveDay, deleteDay } from './modals/day.js';
+// Views
+import { createTrip, editTripMetadata, deleteTrip, importData } from './views/home.js';
+import { addDay, addBucketList, deleteDay }                     from './views/trip.js';
+import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
+         setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
+         setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions }    from './views/day.js';
+
+// Modals
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
-import { 
-    fetchWeather, openCitySearch, addLocation, removeLocation, 
-    openFullDayRoute, calcInlineRoute, openGPSRoute, 
-    useMyLocation, openRadarModal, scanRadar 
-} from './features/maps.js';
+import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
+import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
+import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport } from './modals/finance.js';
+import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
+         toggleCheckItem, deleteCheckItem, openDocumentsModal, saveDocument,
+         deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
+         openMoveCopyModal, prepareMoveModal, confirmMoveCopy }              from './modals/misc.js';
 
-// 1. MONITOR DE LOGIN
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        console.log("✅ Usuário VIP detectado:", user.email);
-        await loadData(); 
-    } else {
-        console.log("👤 Aguardando login...");
-        if (window.render) window.render(); 
-    }
+// Features
+import { openCitySearch, addLocation, removeLocation, fetchWeather,
+         openFullDayRoute, calcInlineRoute, openGPSRoute,
+         useMyLocation, initOriginAutocomplete, openRadarModal, scanRadar }  from './features/maps.js';
+import { fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHistory } from './features/wiki.js';
+import { fetchAIFacts } from './features/ai.js';
+import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS } from './features/export.js';
+
+// Exposição para os botões do HTML
+Object.assign(window, {
+    loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
+    createTrip, editTripMetadata, deleteTrip, importData,
+    exportData: () => exportDataAsJson(appData),
+    addDay, addBucketList, deleteDay,
+    renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
+    setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
+    setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions,
+    openAttractionModal, saveAttraction, addTempCost,
+    openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport,
+    openHotelManager, saveHotel, editHotel, deleteHotel,
+    openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport,
+    openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
+    toggleCheckItem, deleteCheckItem, openDocumentsModal, saveDocument,
+    deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
+    openMoveCopyModal, prepareMoveModal, confirmMoveCopy,
+    openCitySearch, addLocation, removeLocation, fetchWeather,
+    openFullDayRoute, calcInlineRoute, openGPSRoute,
+    useMyLocation, initOriginAutocomplete, openRadarModal, scanRadar,
+    fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHistory, fetchAIFacts,
+    generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS
 });
+ 
+function init() {
+    console.log("🚀 Sistema: Iniciando motor principal...");
+    render(); 
 
-// 2. LIGAÇÃO COM O HTML (Faz os botões funcionarem)
-window.login = () => signInWithPopup(auth, provider);
-window.logout = () => signOut(auth);
+    initAuth(() => {
+        console.log("✅ Usuário VIP detectado. Carregando dados...");
+        try {
+            loadData();
+            const editorEl = document.getElementById('attDescEditor');
+            if (editorEl && typeof Quill !== 'undefined') {
+                const quill = new Quill('#attDescEditor', { theme: 'snow' });
+                setAttractionQuill(quill);
+            }
+            const params = new URLSearchParams(window.location.search);
+            const urlTrip = params.get('tripId');
+            if (urlTrip) goTo('trip', urlTrip); else render();
+        } catch (e) { 
+            console.error('❌ Erro no carregamento:', e); 
+            render(); 
+        }
+    });
+}
 
-// Modais
-window.openTripModal = openTripModal;
-window.saveTrip = saveTrip;
-window.deleteTrip = deleteTrip;
-window.openDayModal = openDayModal;
-window.saveDay = saveDay;
-window.deleteDay = deleteDay;
-window.openAttractionModal = openAttractionModal;
-window.saveAttraction = saveAttraction;
-window.addTempCost = addTempCost;
-
-// Mapas e Clima
-window.fetchWeather = fetchWeather;
-window.openCitySearch = openCitySearch;
-window.addLocation = addLocation;
-window.removeLocation = removeLocation;
-window.openFullDayRoute = openFullDayRoute;
-window.calcInlineRoute = calcInlineRoute;
-window.openGPSRoute = openGPSRoute;
-window.useMyLocation = useMyLocation;
-window.openRadarModal = openRadarModal;
-window.scanRadar = scanRadar;
-
-console.log("🚀 Sistema: Motor principal iniciado com sucesso!");
+document.addEventListener('DOMContentLoaded', init);
