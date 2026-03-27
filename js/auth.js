@@ -4,6 +4,7 @@ import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } fr
 export let currentUser = null;
 export let authInitialized = false;
 
+// 🛑 LISTA VIP ÚNICA
 const VIP_LIST = [
     'gilsonmarcondes@gmail.com', 
     'gilson.marcondes@unesp.br',
