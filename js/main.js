@@ -2,7 +2,7 @@
 import { loadData, saveData, appData, setAttractionQuill } from './store.js';
 import { render, goTo, openTrip, openDay }   from './router.js';
 import { exportDataAsJson, closeModals }     from './utils.js';
-import { initAuth, logoutUser } from './auth.js';
+import { initAuth, loginUser, logoutUser } from './auth.js';
 
 // Views
 import { createTrip, editTripMetadata, deleteTrip, importData } from './views/home.js';
@@ -33,7 +33,7 @@ import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, g
 // --- EXPOSIÇÃO GLOBAL (A "FIAÇÃO") ---
 Object.assign(window, {
     // Auth & Router
-    logoutUser, goTo, openTrip, openDay, render, closeModals,
+    loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
     
     // Home & Trip Management
     createTrip, editTripMetadata, deleteTrip, importData,
