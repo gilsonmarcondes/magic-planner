@@ -3,14 +3,12 @@ import { render, goTo, openTrip, openDay }   from './router.js';
 import { exportDataAsJson, closeModals }     from './utils.js';
 import { initAuth, loginUser, logoutUser } from './auth.js';
 
-// Views
+// Views e Modais
 import { createTrip, editTripMetadata, deleteTrip, importData } from './views/home.js';
 import { addDay, addBucketList, deleteDay }                     from './views/trip.js';
 import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
          setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
          setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions }    from './views/day.js';
-
-// Modals
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
 import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
 import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
@@ -20,7 +18,7 @@ import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
          deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
          openMoveCopyModal, prepareMoveModal, confirmMoveCopy }              from './modals/misc.js';
 
-// Features (Aqui estão as funções de Clima e Radar)
+// Features (Clima, Radar, Wiki, PDF)
 import { openCitySearch, addLocation, removeLocation, fetchWeather,
          openFullDayRoute, calcInlineRoute, openGPSRoute,
          useMyLocation, initOriginAutocomplete, openRadarModal, scanRadar }  from './features/maps.js';
@@ -28,7 +26,7 @@ import { fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHis
 import { fetchAIFacts } from './features/ai.js';
 import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS } from './features/export.js';
 
-// Exposição para os botões do HTML
+// Exposição Global para o HTML
 Object.assign(window, {
     loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
     createTrip, editTripMetadata, deleteTrip, importData,
@@ -54,7 +52,6 @@ Object.assign(window, {
  
 function init() {
     console.log("🚀 Sistema: Iniciando motor principal...");
-    
     initAuth(() => {
         console.log("✅ Usuário VIP detectado. Carregando dados...");
         try {

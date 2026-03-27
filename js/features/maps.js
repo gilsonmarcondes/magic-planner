@@ -1,3 +1,4 @@
+// --- FEATURE: MAPS & WEATHER ---
 import { appData, currentState, saveData, currentInlineModes } from '../store.js';
 import { OPENWEATHER_API_KEY } from '../config.js';
 
@@ -32,7 +33,7 @@ export async function removeLocation(name) {
     window.render();
 }
 
-// 🌦️ FUNÇÃO DE CLIMA (Com Trava de 5 dias para sua viagem em Abril)
+// 🌦️ FUNÇÃO DE CLIMA (Com Trava de 5 dias para Abril/2026)
 export async function fetchWeather() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
@@ -64,7 +65,7 @@ export async function fetchWeather() {
                 const temp = Math.round(item.main.temp);
                 const icon = `https://openweathermap.org/img/wn/${item.weather[0].icon}.png`;
                 html += `<div class="flex flex-col items-center bg-white/60 rounded-lg p-2 min-w-[65px]">
-                            <span class="text-[11px] font-bold">${temp}°</span>
+                            <span class="text-[11px] font-bold text-slate-800">${temp}°</span>
                             <img src="${icon}" class="w-8 h-8">
                          </div>`;
             });
@@ -76,13 +77,14 @@ export async function fetchWeather() {
     } catch (e) { console.error(e); }
 }
 
-export function openFullDayRoute() { /* ... lógica de rota ... */ }
-export function initOriginAutocomplete(id) { /* ... lógica autocomplete ... */ }
-export function calcInlineRoute(id) { /* ... lógica rota inline ... */ }
-export function openGPSRoute(id) { /* ... lógica gps ... */ }
-export function useMyLocation(id) { /* ... lógica localização ... */ }
+// Funções de Mapa e GPS
+export function openFullDayRoute() { /* Lógica de rota omitida para brevidade */ }
+export function initOriginAutocomplete(id) { /* Lógica autocomplete omitida */ }
+export function calcInlineRoute(id) { /* Lógica rota inline omitida */ }
+export function openGPSRoute(id) { /* Lógica GPS omitida */ }
+export function useMyLocation(id) { /* Lógica localização omitida */ }
 
-// --- 📡 FUNÇÕES DO RADAR (Importantes para o main.js) ---
+// --- 📡 FUNÇÕES DO RADAR (Essenciais para o main.js) ---
 export function openRadarModal() {
     alert("📡 O Radar de Atrações está sendo calibrado! Em breve você poderá localizar pontos próximos.");
 }
