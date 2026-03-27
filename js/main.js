@@ -1,9 +1,9 @@
 // --- ENTRY POINT ---
-// No topo do seu js/main.js, mude as primeiras linhas para:
-import { loadData, saveData, appData, setAttractionQuill } from './store.js?v=2';
-import { render, goTo, openTrip, openDay }   from './router.js?v=2';
-import { exportDataAsJson, closeModals }     from './utils.js?v=2';
-import { initAuth, loginUser, logoutUser } from './auth.js?v=2';
+import { loadData, saveData, appData, setAttractionQuill } from './store.js';
+import { render, goTo, openTrip, openDay }   from './router.js';
+import { exportDataAsJson, closeModals }     from './utils.js';
+import { initAuth, loginUser, logoutUser } from './auth.js';
+
 // Views
 import { createTrip, editTripMetadata, deleteTrip, importData } from './views/home.js';
 import { addDay, addBucketList, deleteDay }                     from './views/trip.js';
@@ -56,17 +56,19 @@ Object.assign(window, {
 // --- INICIALIZAÇÃO ---
 function init() {
     console.log("🚀 Sistema: Iniciando motor principal...");
-    render(); 
+    render(); // Inicia com o ecrã de carregamento
 
     initAuth(() => {
         console.log("✅ Usuário VIP detectado. Carregando dados...");
         try {
             loadData();
+            // Inicializa o Quill
             const editorEl = document.getElementById('attDescEditor');
             if (editorEl && typeof Quill !== 'undefined') {
                 const quill = new Quill('#attDescEditor', { theme: 'snow' });
                 setAttractionQuill(quill);
             }
+            // Navega para a página correta
             const params = new URLSearchParams(window.location.search);
             const urlTrip = params.get('tripId');
             if (urlTrip) goTo('trip', urlTrip); else render();

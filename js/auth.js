@@ -4,7 +4,7 @@ import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } fr
 export let currentUser = null;
 export let authInitialized = false;
 
-// 🛑 LISTA VIP ÚNICA (Centralizada aqui)
+// 🛑 LISTA VIP ÚNICA
 const VIP_LIST = [
     'gilsonmarcondes@gmail.com', 
     'gilson.marcondes@unesp.br',
@@ -12,10 +12,10 @@ const VIP_LIST = [
 ];
 
 export function initAuth(onSuccessCallback) {
-    console.log("🚀 Auth: Aguardando sinal do Google...");
+    console.log("🚀 Auth: Observador configurado.");
 
-    // Captura o resultado do login após o redirecionamento
-    getRedirectResult(auth).catch((error) => console.error("Erro no login:", error));
+    // Captura o resultado do redirect (essencial para telemóveis)
+    getRedirectResult(auth).catch((error) => console.error("Erro redirect:", error));
 
     onAuthStateChanged(auth, (user) => {
         authInitialized = true;
@@ -23,20 +23,20 @@ export function initAuth(onSuccessCallback) {
         if (user) {
             const email = user.email.toLowerCase().trim();
             if (VIP_LIST.includes(email)) {
-                currentUser = user; // Utilizador VIP validado
-                console.log("✅ VIP Confirmado:", email);
+                currentUser = user;
+                console.log("✅ Auth: Usuário VIP detectado:", email);
                 if (onSuccessCallback) onSuccessCallback();
             } else {
-                console.warn("🚫 Não autorizado:", email);
-                // Criamos um marcador claro para o roteador
+                console.warn("🚫 Auth: Usuário barrado:", email);
+                // Criamos um objeto claro para o roteador ler
                 currentUser = { isBarrado: true, email: email }; 
             }
         } else {
-            console.log("👤 Nenhum utilizador detetado.");
+            console.log("👤 Auth: Nenhum usuário logado.");
             currentUser = null;
         }
 
-        // Avisa o roteador para atualizar a tela
+        // SEMPRE chama o render global para atualizar a tela
         if (window.render) window.render();
     });
 }

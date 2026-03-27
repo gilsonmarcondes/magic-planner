@@ -2,13 +2,6 @@ import { currentState, setCurrentState } from './store.js';
 import { closeModals } from './utils.js';
 import { currentUser, authInitialized } from './auth.js'; 
 
-// 🛑 LISTA VIP
-const VIP_LIST = [
-    'gilsonmarcondes@gmail.com',
-    'gilson.marcondes@unesp.br',
-    'amigo2@gmail.com'
-];
-
 export function goTo(page, tripId = null, dayId = null) {
     closeModals();
     setCurrentState({ page });
@@ -25,46 +18,58 @@ export function render() {
     const app = document.getElementById('app');
     if (!app) return;
 
-    // 1. ESTÁGIO DE CARREGAMENTO
+    // 1. ESTÁGIO DE CARREGAMENTO (Aguardando Firebase)
     if (!authInitialized) {
-        app.innerHTML = `<div class="flex flex-col justify-center items-center min-h-[80vh]"><div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-6"></div><p class="text-blue-900 font-bold animate-pulse font-mono uppercase text-[10px]">Consultando o Mapa do Maroto...</p></div>`;
+        app.innerHTML = `
+            <div class="flex flex-col justify-center items-center min-h-[80vh]">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-6"></div>
+                <p class="text-blue-900 font-bold animate-pulse font-mono uppercase text-[10px]">Consultando o Mapa do Maroto...</p>
+            </div>`;
         return;
     }
 
     // 2. TELA DE LOGIN (Ninguém logado)
     if (!currentUser) {
-        app.innerHTML = `<div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in"><div class="text-center bg-white p-10 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100"><span class="text-7xl mb-6 block">✈️</span><h1 class="font-magic text-4xl text-[#0c4a6e] mb-10 uppercase font-bold tracking-tighter text-center">Magic Planner</h1><button onclick="window.loginUser()" class="w-full flex items-center justify-center gap-4 bg-white text-gray-700 font-bold py-4 px-6 rounded-2xl shadow-md border border-gray-200 hover:bg-gray-50 active:scale-95"><img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6">Entrar com Google</button></div></div>`;
+        app.innerHTML = `
+            <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
+                <div class="text-center bg-white p-10 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100">
+                    <span class="text-7xl mb-6 block">✈️</span>
+                    <h1 class="font-magic text-4xl text-[#0c4a6e] mb-10 uppercase font-bold tracking-tighter text-center">Magic Planner</h1>
+                    <button onclick="window.loginUser()" class="w-full flex items-center justify-center gap-4 bg-white text-gray-700 font-bold py-4 px-6 rounded-2xl shadow-md border border-gray-200 hover:bg-gray-50 active:scale-95">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6">
+                        Entrar com Google
+                    </button>
+                </div>
+            </div>`;
         const nav = document.getElementById('bottomNav');
         if (nav) { nav.classList.add('hidden'); nav.style.display = 'none'; }
         return; 
     }
 
-    // 3. ACESSO INTERDITADO (Se for barrado no auth.js)
-    if (currentUser.isBarrado || currentUser.status === "BARRADO") {
-        const emailExibir = currentUser.email || "E-mail desconhecido";
+    // 3. ACESSO INTERDITADO (Usuário logado mas não é VIP)
+    if (currentUser.isBarrado) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
                 <div class="text-center bg-red-50 p-10 rounded-3xl shadow-2xl max-w-sm w-full border-2 border-red-200">
                     <span class="text-8xl mb-6 block">🚫</span>
                     <h1 class="font-magic text-3xl text-red-700 mb-4 uppercase font-bold text-center">Acesso Interditado</h1>
                     <p class="text-sm text-red-800 mb-10 font-mono text-center">
-                        O e-mail <br><b class="text-blue-900">${emailExibir}</b><br> não está na lista VIP desta missão.
+                        O e-mail <br><b class="text-blue-900 break-all">${currentUser.email}</b><br> não está na lista VIP desta missão.
                     </p>
                     <button onclick="window.logoutUser()" class="w-full bg-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:bg-red-700 transition active:scale-95 uppercase tracking-widest text-xs">
                         Trocar de Conta
                     </button>
                 </div>
             </div>`;
-        
         const nav = document.getElementById('bottomNav');
         if (nav) { nav.classList.add('hidden'); nav.style.display = 'none'; }
         return; 
     }
 
-    // 4. ACESSO LIBERADO (Renderização normal)
+    // 4. ACESSO LIBERADO (Renderização das Páginas)
     app.innerHTML = '';
     const scrollY = window.scrollY;
-
+    
     switch (currentState.page) {
         case 'home': 
             import('./views/home.js').then(m => m.renderHome(app)); 
