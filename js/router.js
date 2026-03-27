@@ -6,8 +6,8 @@ import { currentUser, logoutUser } from './auth.js';
 
 // 🛑 SUA LISTA VIP: Coloque aqui os e-mails autorizados
 const VIP_LIST = [
-    'seuemail@gmail.com',
-    'amigo1@gmail.com',
+    'gilson.marcondes@unesp.br',
+    'gilsonmarcondes@gmail.com',
     'amigo2@gmail.com'
 ];
 
