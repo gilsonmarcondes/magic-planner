@@ -1,75 +1,137 @@
-import { loadData, saveData, appData, setAttractionQuill } from './store.js';
-import { render, goTo, openTrip, openDay }   from './router.js';
-import { exportDataAsJson, closeModals }     from './utils.js';
-import { initAuth, loginUser, logoutUser } from './auth.js';
+import { appData, saveData, currentState } from '../store.js';
+import { render, goTo } from '../router.js';
+import { closeModals, formatDateBr, getDayName } from '../utils.js';
 
-// Views - Removido o 'createTrip' problemático daqui
-import { editTripMetadata, deleteTrip, importData } from './views/home.js';
-import { addDay, addBucketList, deleteDay, openTripModal, saveTrip } from './views/trip.js'; 
-import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
-         setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
-         setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions }    from './views/day.js';
+// --- TELA DO ROTEIRO DA VIAGEM ---
+export function renderTrip(container, tripId) {
+    const t = appData.trips.find(x => x.id === tripId);
+    if (!t) {
+        container.innerHTML = '<div class="p-10 text-center text-gray-500 font-bold">Viagem não encontrada.</div>';
+        return;
+    }
 
-// Modals
-import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
-import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
-import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
-import { openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport } from './modals/finance.js';
-import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
-         toggleCheckItem, deleteCheckItem, openDocumentsModal, saveDocument,
-         deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
-         openMoveCopyModal, prepareMoveModal, confirmMoveCopy }              from './modals/misc.js';
+    let html = `
+        <div class="p-4 max-w-5xl mx-auto pb-24 animate-fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="window.goTo('home')" class="bg-white border px-4 py-2 rounded-lg text-sm font-bold shadow-sm text-slate-600 hover:bg-gray-50 transition">⬅ Voltar</button>
+                <h2 class="text-3xl font-magic font-bold text-[#0c4a6e] uppercase text-center">${t.name}</h2>
+                <button onclick="window.openTripModal('${t.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 px-3 py-2 rounded-lg font-bold text-sm transition">✏️ Editar</button>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    `;
 
-// Features
-import { openCitySearch, addLocation, removeLocation, fetchWeather,
-         openFullDayRoute, calcInlineRoute, openGPSRoute,
-         useMyLocation, initOriginAutocomplete, openRadarModal, scanRadar }  from './features/maps.js';
-import { fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHistory } from './features/wiki.js';
-import { fetchAIFacts } from './features/ai.js';
-import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS } from './features/export.js';
+    if (t.days && t.days.length > 0) {
+        t.days.forEach((d, index) => {
+            const dateStr = d.date ? `${formatDateBr(d.date)} • ${getDayName(d.date)}` : `Dia ${index + 1}`;
+            html += `
+                <div class="card p-5 cursor-pointer hover:bg-blue-50 transition border-l-4 border-l-[#d4af37] shadow-sm" onclick="window.goTo('day', '${t.id}', '${d.id}')">
+                    <h3 class="font-bold text-lg text-[#0c4a6e]">${d.customTitle || 'Dia ' + (index + 1)}</h3>
+                    <p class="text-xs text-gray-500 mb-2 font-bold uppercase tracking-wide">${dateStr}</p>
+                    <p class="text-sm text-slate-600 font-medium">📍 ${(d.locations || []).map(l => l.name).join(', ') || 'Sem cidades adicionadas'}</p>
+                    <div class="mt-3 flex gap-2">
+                        <span class="text-[10px] bg-white border px-2 py-1 rounded text-gray-500 font-bold">✨ ${d.attractions ? d.attractions.length : 0} paradas</span>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        html += `<div class="col-span-full text-center py-10 text-gray-400 bg-white border border-dashed rounded-xl">Nenhum dia gerado para este roteiro.</div>`;
+    }
 
-// Exposição Global - Removido o 'createTrip' daqui também
-Object.assign(window, {
-    loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
-    editTripMetadata, deleteTrip, importData,
-    openTripModal, saveTrip, 
-    exportData: () => exportDataAsJson(appData),
-    addDay, addBucketList, deleteDay,
-    renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
-    setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
-    setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions,
-    openAttractionModal, saveAttraction, addTempCost,
-    openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport,
-    openHotelManager, saveHotel, editHotel, deleteHotel,
-    openFinanceModal, switchFinanceTab, saveRates, addInitialCost, deleteInitialCost, syncHistoricalRates, renderReport,
-    openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
-    toggleCheckItem, deleteCheckItem, openDocumentsModal, saveDocument,
-    deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
-    openMoveCopyModal, prepareMoveModal, confirmMoveCopy,
-    openCitySearch, addLocation, removeLocation, fetchWeather,
-    openFullDayRoute, calcInlineRoute, openGPSRoute,
-    useMyLocation, initOriginAutocomplete, openRadarModal, scanRadar,
-    fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHistory, fetchAIFacts,
-    generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS
-});
- 
-function init() {
-    console.log("🚀 Sistema: Iniciando motor principal...");
-    initAuth(() => {
-        try {
-            loadData();
-            const editorEl = document.getElementById('attDescEditor');
-            if (editorEl && typeof Quill !== 'undefined') {
-                const quill = new Quill('#attDescEditor', { theme: 'snow' });
-                setAttractionQuill(quill);
-            }
-            const params = new URLSearchParams(window.location.search);
-            const urlTrip = params.get('tripId');
-            if (urlTrip) goTo('trip', urlTrip); else render();
-        } catch (e) { 
-            console.error('❌ Erro no carregamento:', e); 
-            render(); 
-        }
-    });
+    html += `
+            </div>
+            <div class="mt-8 flex justify-center gap-4">
+                <button onclick="window.addDay()" class="bg-[#0c4a6e] text-white px-6 py-3 rounded-lg font-bold shadow-md hover:bg-[#073654] transition">+ Adicionar Dia Extra</button>
+            </div>
+        </div>
+    `;
+    container.innerHTML = html;
 }
-document.addEventListener('DOMContentLoaded', init);
+
+// --- FUNÇÕES DE MANIPULAÇÃO DE DIAS ---
+export async function addDay() {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    if(!t) return;
+    if(!t.days) t.days = [];
+    
+    let nextDate = '';
+    if(t.days.length > 0) {
+        const lastDate = t.days[t.days.length-1].date;
+        if(lastDate) {
+            const d = new Date(lastDate + 'T12:00:00');
+            d.setDate(d.getDate() + 1);
+            nextDate = d.toISOString().split('T')[0];
+        }
+    }
+
+    t.days.push({
+        id: Math.random().toString(36).substr(2, 9),
+        date: nextDate,
+        locations: [], attractions: [], transport: [], extraCosts: [], isBucket: false
+    });
+    await saveData();
+    window.render();
+}
+
+export async function deleteDay(dayId) {
+    if(!confirm('Apagar este dia e todas as suas paradas?')) return;
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    if(!t) return;
+    t.days = t.days.filter(d => d.id !== dayId);
+    await saveData();
+    window.render();
+}
+
+export async function addBucketList() {
+    console.log("Bucket List a implementar.");
+}
+
+// --- FUNÇÕES DO MODAL DE NOVA VIAGEM ---
+let editingTripId = null;
+
+export function openTripModal(id = null) {
+    editingTripId = id;
+    const modal = document.getElementById('tripModal');
+    if(!modal) return;
+    const t = id ? appData.trips.find(x => x.id === id) : null;
+
+    document.getElementById('tripModalTitle').innerText = t ? 'Editar Viagem' : 'Nova Viagem';
+    document.getElementById('tripName').value = t ? t.name : '';
+    document.getElementById('tripStart').value = t ? t.startDate : '';
+    document.getElementById('tripEnd').value = t ? t.endDate : '';
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+export async function saveTrip() {
+    const name = document.getElementById('tripName').value.trim();
+    const start = document.getElementById('tripStart').value;
+    const end = document.getElementById('tripEnd').value;
+
+    if (!name || !start || !end) return alert('Por favor, preencha todos os campos!');
+
+    if (editingTripId) {
+        const tripData = appData.trips.find(x => x.id === editingTripId);
+        tripData.name = name; tripData.startDate = start; tripData.endDate = end;
+    } else {
+        const tripData = {
+            id: Math.random().toString(36).substr(2, 9),
+            name, startDate: start, endDate: end, days: [], hotels: [], extraCosts: [], rates: { USD: 0, EUR: 0, GBP: 0 }
+        };
+        let current = new Date(start + 'T00:00:00');
+        const last = new Date(end + 'T00:00:00');
+        while (current <= last) {
+            tripData.days.push({
+                id: Math.random().toString(36).substr(2, 9),
+                date: current.toISOString().split('T')[0], locations: [], attractions: [], transport: [], extraCosts: [], isBucket: false
+            });
+            current.setDate(current.getDate() + 1);
+        }
+        appData.trips.push(tripData);
+    }
+    await saveData();
+    closeModals();
+    render();
+}
