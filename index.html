@@ -85,7 +85,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <input id="attName" class="p-2 border rounded border-gray-300" placeholder="Nome da Atração">
-                <input id="attSubtitle" class="p-2 border rounded border-gray-300" placeholder="Subtítulo / Dica curta">
+                <input id="attSubtitle" class="p-2 border rounded border-gray-300" placeholder="Subtítulo">
                 <select id="attType" class="p-2 border rounded border-gray-300"><option value="sight">🏰 Ponto Turístico</option><option value="food">🍔 Alimentação</option><option value="shop">🛍️ Compras</option><option value="other">✨ Outro</option></select>
                 <select id="attPriority" class="p-2 border rounded border-gray-300"><option value="standard">Padrão</option><option value="must_see">🌟 Imperdível</option><option value="photo">📸 Só Foto</option><option value="maybe">⏳ Se Der Tempo</option></select>
                 <input id="attHours" class="p-2 border rounded border-gray-300" placeholder="Horário">
@@ -133,13 +133,30 @@
         <div class="modal-content w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-lg p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-6 border-b pb-2">
                 <h3 class="font-magic text-2xl text-[#0c4a6e] font-bold uppercase">💰 Finanças</h3>
-                <button onclick="window.closeModals()" class="text-gray-400 text-3xl font-bold">&times;</button>
+                <button onclick="window.closeModals()" class="text-gray-400 text-3xl font-bold hover:text-red-500">&times;</button>
             </div>
             <div id="tab-report" class="space-y-4"></div>
         </div>
     </div>
 
-    <div id="hotelModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+    <div id="hotelModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
+        <div class="modal-content w-full max-w-lg bg-white rounded-lg shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">🏨 Hotéis</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
+            </div>
+            <div class="space-y-3 mb-4">
+                <input id="hotelName" class="w-full p-2 border rounded" placeholder="Nome">
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="text-xs text-gray-500">Check-in</label><input id="hotelCheckIn" type="date" class="w-full p-2 border rounded"></div>
+                    <div><label class="text-xs text-gray-500">Check-out</label><input id="hotelCheckOut" type="date" class="w-full p-2 border rounded"></div>
+                </div>
+                <button onclick="window.saveHotel()" class="w-full bg-blue-600 text-white p-2 rounded font-bold">Salvar Hotel</button>
+            </div>
+            <div id="hotelList" class="max-h-40 overflow-y-auto border-t pt-2 space-y-1"></div>
+        </div>
+    </div>
+
     <div id="dayExtraModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
     <div id="checklistModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
     <div id="documentsModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
