@@ -13,7 +13,6 @@ export function openAttractionModal(id = null) {
 
     const modal = document.getElementById('attractionModal');
     
-    // CORREÇÃO CRÍTICA 1: Diz ao modal se estamos editando ou criando
     if (id) {
         modal.dataset.editingId = id;
     } else {
@@ -28,19 +27,19 @@ export function openAttractionModal(id = null) {
     document.getElementById('attHours').value     = a ? (a.hours || '') : '';
     document.getElementById('attAddress').value   = a ? (a.address || '') : '';
     document.getElementById('attMapNum').value    = a ? (a.mapNum || '') : ''; 
-    
-    // Fotos
     document.getElementById('attPhotos').value    = a ? (a.photos ? a.photos.join('\n') : (a.photo || '')) : '';
 
-    // Quill Editor (Descrição)
+    // --- CORREÇÃO DO QUILL: Injeção Segura ---
     const quill = getAttractionQuill();
+    const content = a ? (a.description || a.desc || '') : '';
     if (quill) {
-        quill.root.innerHTML = a ? (a.description || a.desc || '') : '';
+        // Usa o método oficial do Quill para não quebrar o sincronismo interno
+        quill.clipboard.dangerouslyPasteHTML(content);
     } else {
-        document.getElementById('attDescEditor').innerHTML = a ? (a.description || a.desc || '') : '';
+        document.getElementById('attDescEditor').innerHTML = content;
     }
 
-    // CORREÇÃO CRÍTICA 2: Carrega os custos usando a função NOVA (com checkbox)
+    // Carrega os custos 
     const list = document.getElementById('tempCostList');
     list.innerHTML = '';
     const costs = a && a.costs ? [...a.costs] : [];
@@ -48,7 +47,7 @@ export function openAttractionModal(id = null) {
 
     modal.classList.remove('hidden');
 
-    // Inicializa o Autocomplete do Google no campo de endereço
+    // Inicializa o Autocomplete do Google
     if (window.google && !document.getElementById('attAddress').dataset.autocompleteBound) {
         const input = document.getElementById('attAddress');
         const autocomplete = new google.maps.places.Autocomplete(input);
@@ -61,7 +60,7 @@ export function openAttractionModal(id = null) {
     }
 }
 
-// 2. CRIAR LINHAS DE CUSTO (A ÚNICA FUNÇÃO DE CUSTO AGORA)
+// 2. CRIAR LINHAS DE CUSTO
 export function addTempCost(desc = '', value = '', currency = 'USD', paid = false) {
     const list = document.getElementById('tempCostList');
     if (!list) return;
@@ -101,7 +100,6 @@ export async function saveAttraction() {
         return;
     }
 
-    // A MÁGICA DOS CUSTOS: Varre a tela e coleta tudo
     const newCosts = [];
     document.querySelectorAll('#tempCostList .cost-item').forEach(el => {
         const desc = el.querySelector('.cost-desc').value.trim();
@@ -117,6 +115,9 @@ export async function saveAttraction() {
     const modal = document.getElementById('attractionModal');
     const attId = modal.dataset.editingId;
 
+    // --- CORREÇÃO DO QUILL: Resgate Seguro ---
+    const quill = getAttractionQuill();
+
     const attractionData = {
         id: attId || Math.random().toString(36).substr(2, 9),
         name: name,
@@ -127,12 +128,11 @@ export async function saveAttraction() {
         mapNum: document.getElementById('attMapNum').value,
         address: document.getElementById('attAddress').value,
         photos: document.getElementById('attPhotos').value.split('\n').filter(p => p.trim() !== ''),
-        desc: window.quill ? window.quill.root.innerHTML : document.getElementById('attDescEditor').innerHTML,
+        desc: quill ? quill.root.innerHTML : document.getElementById('attDescEditor').innerHTML,
         costs: newCosts, 
         visited: false
     };
 
-    // Salva ou Atualiza
     if (attId) {
         const idx = d.attractions.findIndex(a => a.id === attId);
         if (idx > -1) {
@@ -148,5 +148,4 @@ export async function saveAttraction() {
     window.render(); 
 }
 
-// Expõe para o window apenas o necessário para os botões do modal
 window.addTempCost = addTempCost;
