@@ -1,4 +1,3 @@
-// --- ENTRY POINT ---
 import { loadData, saveData, appData, setAttractionQuill } from './store.js';
 import { render, goTo, openTrip, openDay }   from './router.js';
 import { exportDataAsJson, closeModals }     from './utils.js';
@@ -29,8 +28,7 @@ import { fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHis
 import { fetchAIFacts } from './features/ai.js';
 import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS } from './features/export.js';
 
-// --- EXPOSIÇÃO GLOBAL ---
-// Estas funções ficam disponíveis para os botões do teu HTML
+// Exposição para os botões do HTML
 Object.assign(window, {
     loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
     createTrip, editTripMetadata, deleteTrip, importData,
@@ -54,31 +52,22 @@ Object.assign(window, {
     generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS
 });
  
-// --- INICIALIZAÇÃO ---
 function init() {
     console.log("🚀 Sistema: Iniciando motor principal...");
-    
-    // Inicia a renderização para mostrar o ecrã de carregamento ("Mapa do Maroto")
     render(); 
 
-    // Inicia a autenticação
     initAuth(() => {
         console.log("✅ Usuário VIP detectado. Carregando dados...");
         try {
             loadData();
-
-            // Configuração do Editor de Texto para as atrações
             const editorEl = document.getElementById('attDescEditor');
             if (editorEl && typeof Quill !== 'undefined') {
                 const quill = new Quill('#attDescEditor', { theme: 'snow' });
                 setAttractionQuill(quill);
             }
-
-            // Verifica se há uma viagem específica no URL ou vai para a Home
             const params = new URLSearchParams(window.location.search);
             const urlTrip = params.get('tripId');
             if (urlTrip) goTo('trip', urlTrip); else render();
-
         } catch (e) { 
             console.error('❌ Erro no carregamento:', e); 
             render(); 
@@ -86,5 +75,4 @@ function init() {
     });
 }
 
-// Aguarda o HTML carregar completamente para disparar o motor
 document.addEventListener('DOMContentLoaded', init);
