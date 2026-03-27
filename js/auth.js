@@ -5,33 +5,41 @@ import { loadData } from './store.js';
 // EXPORTAÇÃO DO UTILIZADOR
 export let currentUser = null;
 
+// 🛑 A SUA LISTA VIP DE E-MAILS (Substitua pelos e-mails reais)
+const emailsPermitidos = [
+    'gilsonmarcondes@gmail.com',       // O seu e-mail
+    'gilson.marcondes@unesp.br',          // E-mail da 2ª pessoa
+    'amigo2@gmail.com'           // E-mail da 3ª pessoa
+];
+
 export function initAuth(onSuccessCallback) {
-    // 1. PRIMEIRO: Intercetar o regresso do telemóvel após o Google
-    getRedirectResult(auth).then((result) => {
-        if (result !== null) {
-            console.log("Regresso do Google concluído com sucesso!");
-            // O onAuthStateChanged vai apanhar isto logo a seguir
-        }
-    }).catch((error) => {
-        // Se o telemóvel bloquear algo, vamos ver este aviso no ecrã!
-        alert("Erro no login pelo telemóvel: " + error.message);
+    // Intercetar o regresso após o login no Google
+    getRedirectResult(auth).catch((error) => {
+        alert("Erro no login: " + error.message);
     });
 
-    // 2. SEGUNDO: Ouvir o estado da autenticação
+    // Ouvir o estado da autenticação
     onAuthStateChanged(auth, (user) => {
-        currentUser = user; 
         if (user) {
-            console.log("Logado como:", user.displayName);
+            // VERIFICAÇÃO DE SEGURANÇA: O e-mail está na lista?
+            if (!emailsPermitidos.includes(user.email)) {
+                alert(`Acesso Negado! O e-mail ${user.email} não tem autorização para aceder a este roteiro.`);
+                logoutUser(); // Desloga o intruso imediatamente
+                return; // Pára a execução aqui
+            }
+
+            // Se passou na segurança, carrega a aplicação
+            currentUser = user; 
+            console.log("Logado com sucesso:", user.displayName);
             if (onSuccessCallback) onSuccessCallback(); 
+            
         } else {
-            // Só manda para a página inicial se não estiver logado
+            // Ninguém logado (ou intruso expulso)
+            currentUser = null;
             if (window.render) window.render(); 
         }
     });
 }
 
-export const loginUser = () => {
-    alert("O botão foi clicado! Indo para o Google...");
-    signInWithRedirect(auth, provider).catch(error => alert("Erro: " + error.message));
-};
+export const loginUser = () => signInWithRedirect(auth, provider);
 export const logoutUser = () => signOut(auth);
