@@ -4,9 +4,6 @@ import { loadData } from './store.js';
 
 export let currentUser = null;
 
-// BANDEIRA DE CONGELAMENTO DA TELA
-let acessoBloqueado = false; 
-
 // 🛑 A SUA LISTA VIP DE E-MAILS
 const emailsPermitidos = [
     'gilsonmarcondes@gmail.com',       // E-mail 1
@@ -14,46 +11,46 @@ const emailsPermitidos = [
     'amigo2@gmail.com'           // E-mail 3
 ];
 
+// Função global para o penetra clicar e ir embora
+window.sairDaContaInvalida = () => {
+    signOut(auth).then(() => {
+        window.location.reload(); // Recarrega a página limpa
+    });
+};
+
 export function initAuth(onSuccessCallback) {
     getRedirectResult(auth).catch((error) => console.error("Erro no login:", error));
 
     onAuthStateChanged(auth, (user) => {
-        // Se a tela já foi bloqueada, aborta qualquer tentativa de recarregar a página por cima
-        if (acessoBloqueado) return;
-
         if (user) {
             // VERIFICAÇÃO VIP
             if (!emailsPermitidos.includes(user.email)) {
-                acessoBloqueado = true; // Levanta a bandeira de congelamento!
-                
-                // Desenha a Tela Vermelha
+                // Prende o usuário na Tela Vermelha e NÃO faz o logout automático
                 const app = document.getElementById('app');
                 if (app) {
                     app.innerHTML = `
-                        <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
+                        <div class="flex flex-col justify-center items-center min-h-[80vh] px-4">
                             <div class="text-center bg-red-50 p-8 rounded-2xl shadow-2xl max-w-sm w-full border-2 border-red-200">
                                 <span class="text-7xl mb-4 block">🚫</span>
                                 <h1 class="font-magic text-3xl text-red-700 mb-2 uppercase font-bold">Acesso Negado</h1>
-                                <p class="text-sm text-red-800 mb-8 font-mono">O e-mail <br><b class="text-blue-900">${user.email}</b><br> não está na lista VIP desta viagem.</p>
-                                <button onclick="window.location.reload()" class="w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-red-700 transition active:scale-95 uppercase tracking-widest text-xs">Voltar e Tentar Outro</button>
+                                <p class="text-sm text-red-800 mb-8 font-mono">O e-mail <br><b class="text-blue-900">${user.email}</b><br> não está na lista VIP.</p>
+                                <button onclick="window.sairDaContaInvalida()" class="w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-red-700 transition uppercase text-xs">Sair e Tentar Outro</button>
                             </div>
                         </div>`;
                 }
-                
                 const nav = document.getElementById('bottomNav');
                 if (nav) nav.style.display = 'none';
-
-                // Faz o logout (mas agora a tela não será recarregada porque acessoBloqueado = true)
-                signOut(auth);
-                return; 
+                
+                return; // Para o código aqui!
             }
 
-            // Acesso Permitido
+            // Se passou na segurança, entra na viagem!
             currentUser = user; 
             console.log("Logado com sucesso:", user.displayName);
             if (onSuccessCallback) onSuccessCallback(); 
             
         } else {
+            // Ninguém logado de fato
             currentUser = null;
             if (window.render) window.render(); 
         }
