@@ -153,7 +153,7 @@ export function renderDay(container, tripId, dayId) {
             priorityBadge = '<span class="bg-slate-500 text-white text-[8px] font-bold px-2 py-0.5 rounded ml-2 uppercase tracking-tighter">⏳ Se Der</span>'; 
         }
 
-        // BALÃOZINHO DE NÚMERO ADICIONADO!
+        // BALÃOZINHO DE NÚMERO
         const numBadge = a.mapNum ? `<span class="bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-sm shrink-0 border border-red-700 mt-1">${a.mapNum}</span>` : '';
         const subHtml = a.subtitle ? `<p class="text-xs text-gray-500 italic font-serif -mt-0.5 mb-1">"${a.subtitle}"</p>` : '';
 
@@ -210,9 +210,9 @@ export function renderDay(container, tripId, dayId) {
                         <input id="origin-${a.id}" placeholder="Origem: Estação, Hotel..." class="w-full p-2 border rounded-lg text-xs font-mono shadow-sm mb-3" onfocus="window.initOriginAutocomplete('${a.id}')">
                     </div>
                     <div class="flex justify-between gap-1 mb-3">
-                        <button id="mode-d-${a.id}" onclick="window.setInlineMode('${a.id}','d')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm transition-all">🚗 Carro</button>
-                        <button id="mode-t-${a.id}" onclick="window.setInlineMode('${a.id}','t')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm transition-all">🚌 Transp.</button>
-                        <button id="mode-w-${a.id}" onclick="window.setInlineMode('${a.id}','w')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm transition-all">🚶 A pé</button>
+                        <button id="mode-d-${a.id}" onclick="window.setInlineMode('${a.id}','d')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm transition-all hover:border-blue-300">🚗 Carro</button>
+                        <button id="mode-t-${a.id}" onclick="window.setInlineMode('${a.id}','t')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm transition-all hover:border-blue-300">🚌 Transp.</button>
+                        <button id="mode-w-${a.id}" onclick="window.setInlineMode('${a.id}','w')" class="flex-1 border rounded-lg p-2 text-[10px] font-bold shadow-sm transition-all hover:border-blue-300">🚶 A pé</button>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="window.calcInlineRoute('${a.id}')" class="bg-indigo-600 text-white text-[10px] font-bold py-2 px-4 rounded-lg flex-1 shadow-md hover:bg-indigo-700 uppercase">Mapa Interno</button>
@@ -240,18 +240,25 @@ export function renderDay(container, tripId, dayId) {
                 </div>
                 <button onclick="window.renameDay()" class="text-slate-300 hover:text-blue-500">✏️</button>
             </div>
+            
             <div class="bg-[#0c4a6e] text-white p-2 rounded-xl shadow-lg text-center mb-3 flex justify-between items-center px-4">
                 <span class="text-[9px] uppercase font-bold text-blue-200">Gasto Total do Dia</span>
                 <span class="text-lg font-bold font-mono">R$ ${totalDia.toFixed(2)}</span>
             </div>
-            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="window.openFullDayRoute()" class="bg-emerald-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-md shrink-0 uppercase tracking-tighter font-mono">🗺️ Rota Geral</button>
-                <button onclick="window.openAttractionModal()" class="bg-indigo-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-md shrink-0 uppercase tracking-tighter">+ Atração</button>
-                <button onclick="window.openTransportModal()" class="bg-blue-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-md shrink-0 uppercase tracking-tighter">+ Bilhete</button>
-                <button onclick="window.openDayExtraModal()" class="bg-amber-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-md shrink-0 uppercase tracking-tighter font-mono">+ Extra</button>
-                <button onclick="window.generateDayPDF(event)" class="bg-white text-red-600 text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-sm border border-red-100 shrink-0 uppercase">📄 PDF</button>
+
+            <div class="flex flex-wrap gap-2 justify-center pb-2">
+                <button onclick="window.openFullDayRoute()" class="bg-emerald-600 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-md uppercase">🗺️ Rota</button>
+                <button onclick="window.openAttractionModal()" class="bg-indigo-600 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-md uppercase">+ Atração</button>
+                <button onclick="window.openTransportModal()" class="bg-blue-600 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-md uppercase">+ Bilhete</button>
+                <button onclick="window.openDayExtraModal()" class="bg-amber-600 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-md uppercase">+ Extra</button>
+                
+                <button onclick="window.generateDayPDF(event)" class="bg-white text-red-600 border border-red-200 text-[10px] font-bold px-3 py-2 rounded-lg shadow-sm uppercase">📄 PDF</button>
+                <button onclick="window.toggleSelectAllAttractions()" class="bg-indigo-50 text-indigo-800 border border-indigo-200 text-[10px] font-bold px-3 py-2 rounded-lg shadow-sm uppercase">☑️ Sel. Tudo</button>
+                <button onclick="window.openBatchMoveCopy()" class="bg-purple-600 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-md uppercase">🔄 Mover</button>
+                <button id="btnSortPrio" onclick="window.sortAttractionsByPriority()" class="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-3 py-2 rounded-lg shadow-md uppercase">🌪️ Ordenar</button>
             </div>
         </div>
+        
         <div class="max-w-4xl mx-auto py-4 px-4 pb-24">
             ${marauderMapHtml}
             ${hotelsHtml}
@@ -299,7 +306,6 @@ function updateAttractionOrder(nodeList) {
     ids.forEach(id => {
         const item = combined.find(i => String(i.id) === String(id));
         if (item) {
-            // Se for transporte (tem steps ou está na lista original de transporte), vai pro array de transporte
             const isTransport = d.transport.some(tr => String(tr.id) === String(id));
             if (isTransport) newTrans.push(item);
             else newAtt.push(item);
@@ -310,8 +316,6 @@ function updateAttractionOrder(nodeList) {
     d.transport = newTrans;
     saveData();
 }
-
-// --- TODAS AS FUNÇÕES EXPORTADAS E ÚNICAS ---
 
 export function renameDay() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
