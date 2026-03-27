@@ -3,15 +3,14 @@ import { render, goTo, openTrip, openDay }   from './router.js';
 import { exportDataAsJson, closeModals }     from './utils.js';
 import { initAuth, loginUser, logoutUser } from './auth.js';
 
-// Views
+// Views (A MÁGICA ESTÁ AQUI NA LINHA ABAIXO)
 import { createTrip, editTripMetadata, deleteTrip, importData } from './views/home.js';
-import { addDay, addBucketList, deleteDay }                     from './views/trip.js';
+import { addDay, addBucketList, deleteDay, openTripModal, saveTrip } from './views/trip.js'; 
 import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
          setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
          setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions }    from './views/day.js';
 
-// Modals
-import { openTripModal, saveTrip } from './modals/trip.js'; 
+// Modals (Removi o import do modals/trip.js que estava dando o erro 404)
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
 import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
 import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
@@ -29,7 +28,7 @@ import { fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHis
 import { fetchAIFacts } from './features/ai.js';
 import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS } from './features/export.js';
 
-// Exposição Global para os botões do HTML (Object.assign garante que todos os nomes fiquem visíveis)
+// Exposição Global
 Object.assign(window, {
     loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
     createTrip, editTripMetadata, deleteTrip, importData,
@@ -56,33 +55,21 @@ Object.assign(window, {
  
 function init() {
     console.log("🚀 Sistema: Iniciando motor principal...");
-    
     initAuth(() => {
-        console.log("✅ Usuário VIP detectado. Carregando dados...");
         try {
             loadData();
-            
-            // Inicializa o editor de texto rico (Quill) para as atrações
             const editorEl = document.getElementById('attDescEditor');
             if (editorEl && typeof Quill !== 'undefined') {
                 const quill = new Quill('#attDescEditor', { theme: 'snow' });
                 setAttractionQuill(quill);
             }
-            
-            // Verifica se há uma viagem específica na URL (para partilha de links)
             const params = new URLSearchParams(window.location.search);
             const urlTrip = params.get('tripId');
-            if (urlTrip) {
-                goTo('trip', urlTrip);
-            } else {
-                render();
-            }
+            if (urlTrip) goTo('trip', urlTrip); else render();
         } catch (e) { 
             console.error('❌ Erro no carregamento:', e); 
             render(); 
         }
     });
 }
-
-// Garante que o motor só arranca quando o HTML estiver pronto
 document.addEventListener('DOMContentLoaded', init);
