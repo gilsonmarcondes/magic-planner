@@ -41,20 +41,30 @@ export async function removeLocation(name) {
     window.render();
 }
 
-// 🌦️ NOVA FUNÇÃO DE CLIMA: Previsão a cada 3 horas!
-// 🌦️ FUNÇÃO DE CLIMA ATUALIZADA (Com trava de data)
+// 🌦️ FUNÇÃO DE CLIMA ATUALIZADA (Com Trava Inteligente de 5 dias)
 export async function fetchWeather() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
     
     if (!d.locations || d.locations.length === 0) return alert('Adicione uma cidade primeiro.');
 
-    // --- NOVA TRAVA DE SEGURANÇA ---
-    const hoje = new Date().toISOString().split('T')[0]; // Pega a data de hoje (YYYY-MM-DD)
-    const dataViagem = d.date; // Assume que seu objeto de dia tem o campo .date
+    // --- 🛡️ TRAVA INTELIGENTE: Janela de 5 dias ---
+    if (d.date) {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0); // Zera as horas para comparação justa
+        
+        const dataViagem = new Date(d.date + "T00:00:00");
+        
+        const diffTempo = dataViagem - hoje;
+        const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
-    if (dataViagem && dataViagem !== hoje) {
-        return alert(`📅 Previsão indisponível. A API gratuita só mostra o clima para as próximas 24h. Volte a consultar quando estiver em ${d.locations[0].name.split(',')[0]}!`);
+        if (diffDias > 5) {
+            const dataLiberacao = new Date(dataViagem);
+            dataLiberacao.setDate(dataLiberacao.getDate() - 5);
+            return alert(`📅 Cedo demais! A previsão para ${d.locations[0].name.split(',')[0]} só estará disponível a partir de ${dataLiberacao.toLocaleDateString('pt-BR')}.`);
+        } else if (diffDias < 0) {
+            return alert(`⏳ Esse dia já passou! Não consigo buscar o clima de datas retroativas.`);
+        }
     }
 
     const city = d.locations[0].name.split(',')[0];
@@ -108,7 +118,6 @@ export function openFullDayRoute() {
     const destination = waypoints.pop();
     const wpString = waypoints.length > 0 ? `&waypoints=${waypoints.map(encodeURIComponent).join('|')}` : '';
     
-    // CORREÇÃO: URL oficial de rotas do Google
     const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${wpString}&travelmode=walking`;
     window.open(url, '_blank');
 }
@@ -136,7 +145,6 @@ export function calcInlineRoute(id) {
     const frame = document.getElementById(`map-frame-${id}`);
     const container = document.getElementById(`map-container-${id}`);
     
-    // CORREÇÃO: API Embed correta para iframe
     const apiKey = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]').src.match(/key=([^&]+)/)[1];
     frame.src = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&mode=${mode.toLowerCase()}`;
     container.classList.remove('hidden');
@@ -151,7 +159,6 @@ export function openGPSRoute(id) {
     const modeMap = { 'd': 'driving', 't': 'transit', 'w': 'walking' };
     const mode = modeMap[currentInlineModes[id] || 'd'];
     
-    // CORREÇÃO: URL oficial de rotas do Google
     const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&travelmode=${mode}`;
     window.open(url, '_blank');
 }
@@ -176,12 +183,4 @@ export function useMyLocation(id) {
     } else {
         alert("Geolocalização não suportada pelo seu navegador.");
     }
-}
-
-export function openRadarModal() {
-    alert("📡 O Radar de Atrações está sendo calibrado! Em breve você poderá localizar pontos de interesse próximos a você.");
-}
-
-export function scanRadar() {
-    console.log("Escaneando área...");
 }
