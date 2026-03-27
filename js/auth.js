@@ -30,5 +30,8 @@ export function initAuth(onSuccessCallback) {
     });
 }
 
-export const loginUser = () => signInWithRedirect(auth, provider);
+export const loginUser = () => {
+    alert("O botão foi clicado! Indo para o Google...");
+    signInWithRedirect(auth, provider).catch(error => alert("Erro: " + error.message));
+};
 export const logoutUser = () => signOut(auth);
