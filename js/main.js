@@ -3,14 +3,15 @@ import { render, goTo, openTrip, openDay }   from './router.js';
 import { exportDataAsJson, closeModals }     from './utils.js';
 import { initAuth, loginUser, logoutUser } from './auth.js';
 
-// Views (A MÁGICA ESTÁ AQUI NA LINHA ABAIXO)
+// Views
 import { createTrip, editTripMetadata, deleteTrip, importData } from './views/home.js';
-import { addDay, addBucketList, deleteDay, openTripModal, saveTrip } from './views/trip.js'; 
+// 👇 AQUI ESTÁ A MÁGICA: Removidos os imports problemáticos
+import { openTripModal, saveTrip } from './views/trip.js'; 
 import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
          setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
          setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions }    from './views/day.js';
 
-// Modals (Removi o import do modals/trip.js que estava dando o erro 404)
+// Modals
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
 import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
 import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
@@ -34,7 +35,6 @@ Object.assign(window, {
     createTrip, editTripMetadata, deleteTrip, importData,
     openTripModal, saveTrip, 
     exportData: () => exportDataAsJson(appData),
-    addDay, addBucketList, deleteDay,
     renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
     setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
     setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions,
