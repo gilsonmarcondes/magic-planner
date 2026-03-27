@@ -1,4 +1,3 @@
-// --- FEATURE: MAPS & WEATHER ---
 import { appData, currentState, saveData, currentInlineModes } from '../store.js';
 import { OPENWEATHER_API_KEY } from '../config.js';
 
@@ -7,26 +6,19 @@ let cityAutocompleteInstance = null;
 export function openCitySearch() {
     const modal = document.getElementById('citySearchModal');
     if (modal) modal.classList.remove('hidden');
-    
     if (!cityAutocompleteInstance && window.google) {
         const input = document.getElementById('citySearchInput');
-        if (input) {
-            cityAutocompleteInstance = new google.maps.places.Autocomplete(input, { types: ['(cities)'] });
-        }
+        if (input) cityAutocompleteInstance = new google.maps.places.Autocomplete(input, { types: ['(cities)'] });
     }
 }
 
 export async function addLocation() {
     const input = document.getElementById('citySearchInput');
-    const cityName = input?.value;
-    if (!cityName) return;
-
+    if (!input?.value) return;
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
-    
     if (!d.locations) d.locations = [];
-    d.locations.push({ name: cityName });
-    
+    d.locations.push({ name: input.value });
     input.value = '';
     await saveData();
     window.render();
@@ -40,25 +32,20 @@ export async function removeLocation(name) {
     window.render();
 }
 
-// 🌦️ FUNÇÃO DE CLIMA (Com Trava de 5 dias para sua viagem em Abril)
 export async function fetchWeather() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
-    
     if (!d.locations || d.locations.length === 0) return alert('Adicione uma cidade primeiro.');
 
     if (d.date) {
         const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0); 
+        hoje.setHours(0, 0, 0, 0);
         const dataViagem = new Date(d.date + "T00:00:00");
         const diffDias = Math.ceil((dataViagem - hoje) / (1000 * 60 * 60 * 24));
-
         if (diffDias > 5) {
             const dataLib = new Date(dataViagem);
             dataLib.setDate(dataLib.getDate() - 5);
             return alert(`📅 Previsão disponível a partir de ${dataLib.toLocaleDateString('pt-BR')}.`);
-        } else if (diffDias < 0) {
-            return alert(`⏳ Esse dia já passou!`);
         }
     }
 
@@ -74,25 +61,21 @@ export async function fetchWeather() {
             proximas24h.forEach(item => {
                 const temp = Math.round(item.main.temp);
                 const icon = `https://openweathermap.org/img/wn/${item.weather[0].icon}.png`;
-                html += `
-                    <div class="flex flex-col items-center bg-white/60 rounded-lg p-2 min-w-[65px]">
-                        <span class="text-[11px] font-bold text-slate-800">${temp}°</span>
-                        <img src="${icon}" class="w-8 h-8">
-                    </div>`;
+                html += `<div class="flex flex-col items-center bg-white/60 p-2 min-w-[65px]"><span class="text-[11px] font-bold">${temp}°</span><img src="${icon}" class="w-8 h-8"></div>`;
             });
             html += `</div>`;
             d.weather = html;
             await saveData();
             window.render();
         }
-    } catch (e) { console.error('Erro clima:', e); }
+    } catch (e) { console.error(e); }
 }
 
 export function openFullDayRoute() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
     const waypoints = d.attractions.map(a => a.address).filter(a => !!a);
-    if (waypoints.length < 2) return alert('Faltam endereços para traçar a rota.');
+    if (waypoints.length < 2) return alert('Faltam endereços.');
     const origin = waypoints.shift();
     const destination = waypoints.pop();
     const wpString = waypoints.length > 0 ? `&waypoints=${waypoints.map(encodeURIComponent).join('|')}` : '';
@@ -138,11 +121,5 @@ export function useMyLocation(id) {
     }
 }
 
-// --- 📡 FUNÇÕES DO RADAR (Apenas uma declaração aqui) ---
-export function openRadarModal() {
-    alert("📡 O Radar de Atrações está sendo calibrado para sua viagem!");
-}
-
-export function scanRadar() {
-    console.log("Escaneando área próxima...");
-}
+export function openRadarModal() { alert("📡 Radar em calibração..."); }
+export function scanRadar() { console.log("Escaneando..."); }

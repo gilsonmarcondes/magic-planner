@@ -2,51 +2,26 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Magic Planner ✈️</title>
-    
     <meta name="theme-color" content="#fffef0">
     <link rel="apple-touch-icon" href="icon-192.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Amatic+SC:wght@700&display=swap" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAtp5jarrnwyy3_JWVfoWGbKlfEd4NjSKk&libraries=places&language=pt_BR"></script>
-    
     <style>
         .modal { display: none !important; }
         .modal.flex, .modal:not(.hidden) { display: flex !important; opacity: 1; pointer-events: auto; }
         .hidden { display: none !important; }
-        
-        /* --- CORREÇÃO DO AUTOCOMPLETAR DO GOOGLE --- */
-        .pac-container {
-            z-index: 999999 !important; /* Força a lista a ficar na frente do modal */
-            border-radius: 8px !important;
-            border: 1px solid #0c4a6e !important;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
-            font-family: 'Quicksand', sans-serif !important;
-            margin-top: 5px !important;
-        }
-        .pac-item {
-            padding: 8px 12px !important;
-            cursor: pointer !important;
-            font-size: 14px !important;
-        }
-        .pac-item:hover {
-            background-color: #f0f9ff !important;
-        }
+        .pac-container { z-index: 999999 !important; border-radius: 8px !important; border: 1px solid #0c4a6e !important; box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important; font-family: 'Quicksand', sans-serif !important; margin-top: 5px !important; }
+        .pac-item { padding: 8px 12px !important; cursor: pointer !important; font-size: 14px !important; }
+        .pac-item:hover { background-color: #f0f9ff !important; }
     </style>
 </head>
 <body class="bg-[#fffef0] text-slate-800 pb-20 select-none">
-
-    <div id="autoSaveIndicator" class="fixed top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg z-50 transition-opacity opacity-0 pointer-events-none">
-        💾 Salvo
-    </div>
-
+    <div id="autoSaveIndicator" class="fixed top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg z-50 transition-opacity opacity-0 pointer-events-none">💾 Salvo</div>
     <div id="app" class="p-4 max-w-5xl mx-auto min-h-screen"></div>
 
     <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#d4af37] flex justify-around p-3 z-40 hidden shadow-[0_-4px_6_px_-1px_rgba(0,0,0,0.1)]">
@@ -55,6 +30,23 @@
         <button onclick="window.openFinanceModal()" class="flex flex-col items-center text-[#0c4a6e] active:scale-95 transition"><span class="text-2xl">💰</span><span class="text-[10px] font-bold uppercase tracking-wide">Finanças</span></button>
     </nav>
 
+    <div id="tripModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
+        <div class="modal-content w-full max-w-md bg-white rounded-lg shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 id="tripModalTitle" class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">Nova Viagem</h3>
+                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input id="tripName" class="w-full p-2 border rounded" placeholder="Nome da Viagem">
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="text-[10px] font-bold">Início</label><input id="tripStart" type="date" class="w-full p-2 border rounded"></div>
+                    <div><label class="text-[10px] font-bold">Fim</label><input id="tripEnd" type="date" class="w-full p-2 border rounded"></div>
+                </div>
+                <button onclick="window.saveTrip()" class="w-full bg-blue-600 text-white p-3 rounded font-bold shadow-lg">Salvar Viagem</button>
+            </div>
+        </div>
+    </div>
+
     <div id="attractionModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
         <div class="modal-content w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-2xl p-6 relative">
             <div class="flex justify-between items-center mb-4 border-b pb-2 sticky top-0 bg-white z-10">
@@ -62,18 +54,18 @@
                 <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <input id="attName" class="p-2 border rounded border-gray-300" placeholder="Nome da Atração">
-                <input id="attSubtitle" class="p-2 border rounded border-gray-300" placeholder="Subtítulo / Dica curta">
-                <select id="attType" class="p-2 border rounded border-gray-300"><option value="sight">🏰 Ponto Turístico</option><option value="food">🍔 Alimentação</option><option value="shop">🛍️ Compras</option><option value="other">✨ Outro</option></select>
-                <select id="attPriority" class="p-2 border rounded border-gray-300"><option value="standard">Padrão</option><option value="must_see">🌟 Imperdível</option><option value="photo">📸 Só Foto</option><option value="maybe">⏳ Se Der Tempo</option></select>
-                <input id="attHours" class="p-2 border rounded border-gray-300" placeholder="Horário">
-                <input id="attMapNum" type="number" class="p-2 border rounded border-gray-300" placeholder="Número Mapa">
+                <input id="attName" class="p-2 border rounded" placeholder="Nome da Atração">
+                <input id="attSubtitle" class="p-2 border rounded" placeholder="Subtítulo">
+                <select id="attType" class="p-2 border rounded"><option value="sight">🏰 Ponto Turístico</option><option value="food">🍔 Alimentação</option><option value="shop">🛍️ Compras</option><option value="other">✨ Outro</option></select>
+                <select id="attPriority" class="p-2 border rounded"><option value="standard">Padrão</option><option value="must_see">🌟 Imperdível</option><option value="photo">📸 Só Foto</option><option value="maybe">⏳ Se Der Tempo</option></select>
+                <input id="attHours" class="p-2 border rounded" placeholder="Horário">
+                <input id="attMapNum" type="number" class="p-2 border rounded" placeholder="Número Mapa">
             </div>
-            <input id="attAddress" class="w-full p-2 border rounded border-gray-300 mb-4" placeholder="Endereço Completo">
-            <textarea id="attPhotos" class="w-full p-2 border rounded border-gray-300 mb-4 h-20" placeholder="Links Fotos (uma por linha)"></textarea>
+            <input id="attAddress" class="w-full p-2 border rounded mb-4" placeholder="Endereço">
+            <textarea id="attPhotos" class="w-full p-2 border rounded mb-4 h-20" placeholder="Links Fotos"></textarea>
             <div class="mb-4">
-                <button onclick="window.fetchAIFacts()" class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded font-bold mb-2">✨ Gerar Dicas com IA</button>
-                <div id="attDescEditor" class="h-40 bg-white rounded-b-lg border border-gray-300"></div>
+                <button onclick="window.fetchAIFacts()" class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded font-bold mb-2">✨ Gerar com IA</button>
+                <div id="attDescEditor" class="h-40 bg-white border border-gray-300"></div>
             </div>
             <div class="mb-4 border p-3 rounded bg-gray-50">
                 <div class="flex justify-between items-center mb-2"><label class="font-bold text-[#0c4a6e] text-sm">Custos</label><button onclick="window.addTempCost()" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold">+ Custo</button></div>
@@ -83,211 +75,9 @@
         </div>
     </div>
 
-    <div id="transportModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-4xl max-h-[95vh] overflow-y-auto bg-white rounded-xl shadow-2xl flex flex-col md:flex-row relative">
-            
-            <button onclick="window.closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-3xl font-bold z-20">&times;</button>
-
-            <div class="w-full md:w-1/2 p-6 border-r border-gray-100 flex flex-col">
-                <h3 id="transTitle" class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold mb-4 border-b pb-2">🎫 Novo Bilhete</h3>
-                
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <select id="transType" class="p-2 border rounded-lg border-gray-300 bg-gray-50 text-sm font-bold text-slate-700">
-                        <option value="flight">✈️ Voo</option>
-                        <option value="train">🚆 Comboio / Metrô</option>
-                        <option value="bus">🚌 Autocarro / Tour</option>
-                        <option value="car">🚗 Carro / Uber</option>
-                    </select>
-                    <input id="transRef" class="p-2 border rounded-lg border-gray-300 text-sm uppercase font-mono placeholder-gray-400 font-bold" placeholder="Localizador (PNR)">
-                </div>
-
-                <div class="space-y-3 mb-2 flex-1">
-                    <div class="relative">
-                        <label class="text-[10px] uppercase font-bold text-blue-800">Partida (Origem)</label>
-                        <input id="transOrigin" class="w-full p-2.5 border rounded-lg border-gray-300 text-sm mb-1 shadow-inner" placeholder="Ex: Aeroporto MCO">
-                        <input id="transDepTime" type="datetime-local" class="w-full p-2 border rounded-lg border-gray-300 text-sm text-gray-700 font-mono">
-                    </div>
-                    
-                    <div class="flex justify-center -my-2 relative z-10">
-                        <button onclick="window.calcTransportRoute()" class="bg-indigo-100 text-indigo-700 p-1.5 rounded-full border-2 border-white shadow hover:bg-indigo-200 transition" title="Traçar Rota no Mapa">⬇️ Calcular Rota</button>
-                    </div>
-
-                    <div class="relative">
-                        <label class="text-[10px] uppercase font-bold text-blue-800">Chegada (Destino)</label>
-                        <input id="transDest" class="w-full p-2.5 border rounded-lg border-gray-300 text-sm mb-1 shadow-inner" placeholder="Ex: Hotel em Orlando">
-                        <input id="transArrTime" type="datetime-local" class="w-full p-2 border rounded-lg border-gray-300 text-sm text-gray-700 font-mono">
-                    </div>
-                </div>
-
-                <div class="mt-2 mb-4 border border-slate-200 p-3 rounded-lg bg-slate-50 shadow-inner">
-                    <div class="flex justify-between items-center mb-3 border-b pb-2">
-                        <label class="text-[10px] uppercase font-bold text-[#0c4a6e]">Trechos (Passo a Passo)</label>
-                        <button onclick="window.addRouteStep()" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded font-bold hover:bg-indigo-200 transition shadow-sm">+ Adicionar Trecho</button>
-                    </div>
-                    <div id="routeStepsList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="text-[10px] uppercase font-bold text-[#0c4a6e] ml-1">📝 Detalhes / Texto Original do Mapa</label>
-                    <textarea id="transNotes" class="w-full p-3 border rounded-lg border-gray-300 text-xs mt-1 h-32 shadow-inner font-mono text-gray-600 bg-slate-50" placeholder="Cole aqui o texto completo do Google Maps (com plataformas, paradas, etc)..."></textarea>
-                </div>
-
-                <div class="flex gap-2 items-center mt-2 border p-3 rounded-lg bg-emerald-50/50">
-                    <label class="text-[10px] uppercase font-bold text-gray-500 w-10">Custo</label>
-                    <input id="transCost" type="number" class="flex-1 p-2 border rounded border-gray-300 text-sm font-mono" placeholder="0.00">
-                    <select id="transCur" class="w-20 p-2 border rounded border-gray-300 text-sm bg-white">
-                        <option value="USD">$</option><option value="EUR">€</option><option value="GBP">£</option><option value="BRL">R$</option>
-                    </select>
-                    <div class="flex items-center gap-1 bg-white px-2 py-1.5 rounded border border-gray-300">
-                        <input id="transPaid" type="checkbox" class="w-4 h-4 cursor-pointer">
-                        <label class="text-[10px] uppercase font-bold text-gray-500 cursor-pointer">Pago</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="w-full md:w-1/2 bg-gray-100 flex flex-col relative min-h-[300px] md:min-h-full rounded-r-xl overflow-hidden">
-                <div id="transportMap" class="w-full h-full absolute inset-0"></div>
-                
-                <div id="routeInfoOverlay" class="hidden absolute top-4 left-4 right-12 bg-white/90 backdrop-blur border border-blue-200 p-3 rounded-lg shadow-lg z-10">
-                    <div class="flex justify-between items-center">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] uppercase font-bold text-slate-500">Distância Total</span>
-                            <span id="routeDistance" class="text-lg font-bold text-[#0c4a6e]">-- km</span>
-                        </div>
-                        <div class="w-px h-8 bg-gray-300"></div>
-                        <div class="flex flex-col text-right">
-                            <span class="text-[10px] uppercase font-bold text-slate-500">Tempo Estimado</span>
-                            <span id="routeDuration" class="text-lg font-bold text-emerald-600">-- min</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="mapPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 pointer-events-none">
-                    <span class="text-6xl mb-2">🗺️</span>
-                    <p class="text-sm font-bold">A sua rota aparecerá aqui</p>
-                </div>
-            </div>
-
-            <div class="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 md:w-1/2">
-                <button onclick="window.saveTransport()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition">💾 Guardar Bilhete</button>
-            </div>
-            <div class="h-20 w-full md:hidden"></div>
-        </div>
-    </div>
-
-    <div id="dayExtraModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-md bg-white rounded-lg shadow-2xl p-6 relative">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">💰 Gasto Extra</h3>
-                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
-            </div>
-            <div class="space-y-4">
-                <input id="extraDesc" class="w-full p-2 border rounded" placeholder="Descrição">
-                <div class="flex gap-2">
-                    <input id="extraValue" type="number" class="w-full p-2 border rounded" placeholder="0.00">
-                    <select id="extraCurr" class="w-24 p-2 border rounded bg-white"><option value="GBP">£</option><option value="EUR">€</option><option value="BRL">R$</option></select>
-                </div>
-                <button onclick="window.saveDayExtra()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">Salvar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="hotelModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-lg bg-white rounded-lg shadow-2xl p-6 relative">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">🏨 Hotéis</h3>
-                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
-            </div>
-            <div class="space-y-3 mb-4">
-                <input id="hotelName" class="w-full p-2 border rounded" placeholder="Nome">
-                <div class="grid grid-cols-2 gap-2">
-                    <div><label class="text-xs text-gray-500">Check-in</label><input id="hotelCheckIn" type="date" class="w-full p-2 border rounded"></div>
-                    <div><label class="text-xs text-gray-500">Check-out</label><input id="hotelCheckOut" type="date" class="w-full p-2 border rounded"></div>
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <input id="hotelCost" type="number" class="w-full p-2 border rounded" placeholder="Valor">
-                    <select id="hotelCur" class="w-full p-2 border rounded"><option>BRL</option><option>EUR</option><option>GBP</option></select>
-                    <input id="hotelPayDate" type="date" class="w-full p-2 border rounded" placeholder="Data Pgto">
-                </div>
-                <div class="flex items-center gap-2 mt-2"><input id="hotelPaid" type="checkbox" class="w-5 h-5"><label class="text-sm font-bold">Já pago?</label></div>
-                <button onclick="window.saveHotel()" class="w-full bg-blue-600 text-white p-2 rounded font-bold">Salvar Hotel</button>
-            </div>
-            <div id="hotelList" class="max-h-40 overflow-y-auto border-t pt-2 space-y-1"></div>
-        </div>
-    </div>
-
-    <div id="checklistModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-md bg-white rounded-lg shadow-2xl p-6 relative">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">✅ Checklist</h3>
-                <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
-            </div>
-            <div class="flex gap-2 mb-4">
-                <input id="newCheckItem" class="flex-1 p-3 border-2 border-blue-100 rounded-lg text-sm" placeholder="O que levar...">
-                <button onclick="window.addCheckItem()" class="bg-blue-600 text-white px-4 rounded-lg font-bold">+</button>
-            </div>
-            <div id="checklistItems" class="max-h-60 overflow-y-auto border rounded bg-white"></div>
-        </div>
-    </div>
-
-    <div id="financeModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-    <div class="modal-content w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-lg p-6 shadow-2xl">
-        <div class="flex justify-between items-center mb-6 border-b pb-2">
-            <h3 class="font-magic text-2xl text-[#0c4a6e] font-bold uppercase">💰 Controle Financeiro</h3>
-            <button onclick="window.closeModals()" class="text-gray-400 text-3xl font-bold hover:text-red-500">&times;</button>
-        </div>
-
-        <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100">
-            <div class="grid grid-cols-3 gap-3 mb-4">
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-blue-800">Libra (£)</label>
-                    <input id="rateGBP" placeholder="0.00" class="border p-2 rounded w-full font-mono text-sm">
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-blue-800">Euro (€)</label>
-                    <input id="rateEUR" placeholder="0.00" class="border p-2 rounded w-full font-mono text-sm">
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-blue-800">Dólar ($)</label>
-                    <input id="rateUSD" placeholder="0.00" class="border p-2 rounded w-full font-mono text-sm">
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="window.saveRates()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold text-xs shadow hover:bg-blue-700 transition">💾 Salvar Câmbio</button>
-                <button id="btnSyncRates" onclick="window.syncHistoricalRates()" class="flex-1 bg-white text-indigo-700 border border-indigo-200 py-2 rounded font-bold text-[10px] hover:bg-indigo-50 transition">🔄 Sincronizar por Datas</button>
-            </div>
-        </div>
-
-        <div class="flex gap-4 border-b mb-4">
-            <button id="btn-tab-report" onclick="window.switchFinanceTab('report')" class="pb-2 font-bold text-sm uppercase tracking-wider border-b-2 border-blue-600 text-blue-600">Resumo da Viagem</button>
-            <button id="btn-tab-costs" onclick="window.switchFinanceTab('costs')" class="pb-2 font-bold text-sm uppercase tracking-wider text-gray-400">Custos Iniciais</button>
-        </div>
-
-        <div id="tab-report" class="space-y-4">
-            </div>
-
-        <div id="tab-costs" class="hidden">
-            <div class="flex gap-2 mb-4 bg-gray-50 p-3 rounded border">
-                <input id="initDesc" placeholder="Ex: Passagem, Seguro..." class="flex-1 p-2 border rounded text-sm">
-                <input id="initVal" type="number" placeholder="0.00" class="w-24 p-2 border rounded text-sm font-mono">
-                <select id="initCurr" class="p-2 border rounded text-sm bg-white"><option>BRL</option><option>GBP</option><option>EUR</option><option>USD</option></select>
-                <button onclick="window.addInitialCost()" class="bg-green-600 text-white px-4 rounded font-bold hover:bg-green-700">+</button>
-            </div>
-            <ul id="initialCostsList" class="space-y-2 max-h-60 overflow-y-auto"></ul>
-        </div>
-    </div>
-</div>
-
-    <div id="documentsModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-lg bg-white rounded-lg p-6"><h3 class="font-magic text-2xl mb-4">📂 Documentos</h3><button onclick="window.closeModals()" class="w-full bg-blue-100 py-3 rounded">Fechar</button></div>
-    </div>
-    <div id="citySearchModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-md bg-white rounded-lg p-6"><input id="citySearchInput" class="w-full p-3 border rounded mb-4" placeholder="Cidade..."><button onclick="window.addLocation()" class="w-full bg-green-600 text-white p-3 rounded">Add</button><button onclick="window.closeModals()" class="w-full mt-2 p-3">Cancelar</button></div>
-    </div>
-    <div id="moveCopyModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-        <div class="modal-content w-full max-w-sm bg-white rounded-lg p-6"><h3 id="moveModalTitle" class="font-bold text-lg mb-4">Mover/Copiar</h3><select id="moveTargetDay" class="w-full p-2 border rounded mb-4"></select><div class="flex gap-2"><button onclick="window.confirmMoveCopy(false)" class="flex-1 bg-purple-600 text-white p-2 rounded">Mover</button><button onclick="window.confirmMoveCopy(true)" class="flex-1 bg-blue-600 text-white p-2 rounded">Copiar</button></div><button onclick="window.closeModals()" class="w-full mt-2 p-2">Cancelar</button></div>
-    </div>
+    <div id="transportModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
+    <div id="financeModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+    <div id="hotelModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
@@ -295,29 +85,5 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="module" src="js/main.js?v=VITORIA_NA_UNESP"></script>
-
-    <div id="tripModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
-    <div class="modal-content w-full max-w-md bg-white rounded-lg shadow-2xl p-6 relative">
-        <div class="flex justify-between items-center mb-4 border-b pb-2">
-            <h3 id="tripModalTitle" class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">Nova Viagem</h3>
-            <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
-        </div>
-        <div class="space-y-4">
-            <input id="tripName" class="w-full p-2 border rounded" placeholder="Nome da Viagem (Ex: Londres 2026)">
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-gray-500">Início</label>
-                    <input id="tripStart" type="date" class="w-full p-2 border rounded">
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-gray-500">Fim</label>
-                    <input id="tripEnd" type="date" class="w-full p-2 border rounded">
-                </div>
-            </div>
-            <button onclick="window.saveTrip()" class="w-full bg-blue-600 text-white p-3 rounded font-bold shadow-lg hover:bg-blue-700 transition">Salvar Viagem</button>
-        </div>
-    </div>
-</div>
-
 </body>
 </html>

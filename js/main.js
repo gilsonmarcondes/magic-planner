@@ -10,7 +10,7 @@ import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
          setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
          setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions }    from './views/day.js';
 
-// Modals - ADICIONADO openTripModal AQUI
+// Modals
 import { openTripModal, saveTrip } from './modals/trip.js'; 
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
 import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
@@ -29,11 +29,11 @@ import { fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHis
 import { fetchAIFacts } from './features/ai.js';
 import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS } from './features/export.js';
 
-// Exposição para os botões do HTML
+// Exposição Global (Mantendo TUDO o que você tinha)
 Object.assign(window, {
     loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
     createTrip, editTripMetadata, deleteTrip, importData,
-    openTripModal, saveTrip, // Garantindo o acesso global
+    openTripModal, saveTrip, 
     exportData: () => exportDataAsJson(appData),
     addDay, addBucketList, deleteDay,
     renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
@@ -74,5 +74,4 @@ function init() {
         }
     });
 }
-
 document.addEventListener('DOMContentLoaded', init);
