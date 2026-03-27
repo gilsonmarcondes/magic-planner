@@ -12,27 +12,24 @@ const VIP_LIST = [
 
 export function initAuth(onSuccessCallback) {
     console.log("🚀 Auth: Observador iniciado.");
-
-    getRedirectResult(auth).catch((error) => console.error("Erro no redirect:", error));
+    getRedirectResult(auth).catch((error) => console.error("Erro redirect:", error));
 
     onAuthStateChanged(auth, (user) => {
         authInitialized = true;
-        
         if (user) {
             const email = user.email.toLowerCase().trim();
             if (VIP_LIST.includes(email)) {
                 currentUser = user;
-                console.log("✅ VIP Confirmado:", email);
+                console.log("✅ Auth: Usuário VIP detectado:", email);
                 if (onSuccessCallback) onSuccessCallback();
             } else {
-                console.warn("🚫 Não autorizado:", email);
+                console.warn("🚫 Auth: Usuário barrado:", email);
                 currentUser = { isBarrado: true, email: email }; 
             }
         } else {
-            console.log("👤 Nenhum usuário logado.");
+            console.log("👤 Auth: Nenhum usuário logado.");
             currentUser = null;
         }
-
         if (window.render) window.render();
     });
 }
