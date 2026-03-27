@@ -11,6 +11,11 @@ const VIP_LIST = [
 ];
 
 export function initAuth(onSuccessCallback) {
+    console.log("🚀 Auth: Observador configurado.");
+
+    // Tenta capturar o resultado do redirect (importante para mobile)
+    getRedirectResult(auth).catch((error) => console.error("Erro redirect:", error));
+
     onAuthStateChanged(auth, (user) => {
         authInitialized = true;
         
@@ -18,11 +23,15 @@ export function initAuth(onSuccessCallback) {
             const email = user.email.toLowerCase().trim();
             if (VIP_LIST.includes(email)) {
                 currentUser = user;
+                console.log("✅ Auth: Usuário VIP detectado:", email);
                 if (onSuccessCallback) onSuccessCallback();
             } else {
-                currentUser = "BARRADO"; 
+                console.warn("🚫 Auth: Usuário barrado:", email);
+                // Guardamos o email para mostrar no erro
+                currentUser = { status: "BARRADO", email: email }; 
             }
         } else {
+            console.log("👤 Auth: Nenhum usuário logado.");
             currentUser = null;
         }
 

@@ -36,11 +36,28 @@ export function render() {
         return; 
     }
 
-    if (currentUser === "BARRADO") {
-        const emailNormalizado = (currentUser.email || "").toLowerCase().trim();
-        app.innerHTML = `<div class="flex flex-col justify-center items-center min-h-[80vh] px-4"><div class="text-center bg-red-50 p-10 rounded-3xl shadow-2xl max-w-sm w-full border-2 border-red-200"><span class="text-8xl mb-6 block">🚫</span><h1 class="font-magic text-3xl text-red-700 mb-4 uppercase font-bold text-center text-center">Acesso Interditado</h1><p class="text-sm text-red-800 mb-10 font-mono text-center">O e-mail não está na lista VIP.</p><button onclick="window.logoutUser()" class="w-full bg-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg uppercase text-xs">Trocar de Conta</button></div></div>`;
-        return; 
-    }
+   // --- ESTÁGIO 3: LOGADO, MAS É UM "PENETRA" (NÃO VIP) ---
+// Alterado para verificar a propriedade .status do objeto
+if (currentUser && currentUser.status === "BARRADO") {
+    const emailExibir = currentUser.email || "E-mail desconhecido";
+    app.innerHTML = `
+        <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
+            <div class="text-center bg-red-50 p-10 rounded-3xl shadow-2xl max-w-sm w-full border-2 border-red-200">
+                <span class="text-8xl mb-6 block">🚫</span>
+                <h1 class="font-magic text-3xl text-red-700 mb-4 uppercase font-bold text-center">Acesso Interditado</h1>
+                <p class="text-sm text-red-800 mb-10 font-mono text-center">
+                    O e-mail <br><b class="text-blue-900">${emailExibir}</b><br> não está na lista VIP desta missão.
+                </p>
+                <button onclick="window.logoutUser()" class="w-full bg-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:bg-red-700 transition active:scale-95 uppercase tracking-widest text-xs">
+                    Trocar de Conta
+                </button>
+            </div>
+        </div>`;
+    
+    const nav = document.getElementById('bottomNav');
+    if (nav) { nav.classList.add('hidden'); nav.style.display = 'none'; }
+    return; 
+}
 
     app.innerHTML = '';
     const scrollY = window.scrollY;

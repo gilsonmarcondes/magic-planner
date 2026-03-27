@@ -1,9 +1,9 @@
 // --- ENTRY POINT ---
-import { loadData, saveData, appData, setAttractionQuill } from './store.js';
-import { render, goTo, openTrip, openDay }   from './router.js';
-import { exportDataAsJson, closeModals }     from './utils.js';
-import { initAuth, loginUser, logoutUser } from './auth.js';
-
+// No topo do seu js/main.js, mude as primeiras linhas para:
+import { loadData, saveData, appData, setAttractionQuill } from './store.js?v=2';
+import { render, goTo, openTrip, openDay }   from './router.js?v=2';
+import { exportDataAsJson, closeModals }     from './utils.js?v=2';
+import { initAuth, loginUser, logoutUser } from './auth.js?v=2';
 // Views
 import { createTrip, editTripMetadata, deleteTrip, importData } from './views/home.js';
 import { addDay, addBucketList, deleteDay }                     from './views/trip.js';
