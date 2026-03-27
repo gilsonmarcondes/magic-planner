@@ -9,7 +9,7 @@ export let authInitialized = false;
 const VIP_LIST = [
     'gilsonmarcondes@gmail.com', 
     'gilson.marcondes@unesp.br',
-    'amigo2@gmail.com'
+    'mariliamartinscorrea1983@gmail.com'
 ];
 
 export function initAuth(onSuccessCallback) {
