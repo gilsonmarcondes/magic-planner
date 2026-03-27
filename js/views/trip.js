@@ -76,3 +76,20 @@ export async function saveTrip() {
         import('../router.js').then(({ render }) => render());
     });
 }
+
+// --- Funções de Gestão de Dias (Necessárias para o main.js não travar) ---
+
+export async function addDay() {
+    console.log("Função Adicionar Dia");
+    // A lógica de adicionar dias será colocada aqui futuramente
+}
+
+export async function addBucketList() {
+    console.log("Função Adicionar Bucket List");
+    // A lógica do Bucket List será colocada aqui futuramente
+}
+
+export async function deleteDay(dayId) {
+    console.log("Função Deletar Dia: ", dayId);
+    // A lógica de deletar dias será colocada aqui futuramente
+}
