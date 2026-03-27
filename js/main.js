@@ -10,7 +10,8 @@ import { renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
          setInlineMode, toggleRoutePanel, toggleTicketContent, toggleMarauderMap,
          setMarauderMap, deleteDayExtra, openBatchMoveCopy, toggleSelectAllAttractions }    from './views/day.js';
 
-// Modals
+// Modals - ADICIONADO openTripModal AQUI
+import { openTripModal, saveTrip } from './modals/trip.js'; 
 import { openAttractionModal, saveAttraction, addTempCost } from './modals/attraction.js';
 import { openTransportModal, addRouteStep, calcTransportRoute, saveTransport, deleteTransport } from './modals/transport.js';
 import { openHotelManager, saveHotel, editHotel, deleteHotel } from './modals/hotel.js';
@@ -28,10 +29,11 @@ import { fetchWikipediaData, handleWikiInput, selectWikiSuggestion, quickShowHis
 import { fetchAIFacts } from './features/ai.js';
 import { generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS } from './features/export.js';
 
-// Exposição para os botões do HTML (Aqui é onde a mágica do clique acontece)
+// Exposição para os botões do HTML
 Object.assign(window, {
     loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
     createTrip, editTripMetadata, deleteTrip, importData,
+    openTripModal, saveTrip, // Garantindo o acesso global
     exportData: () => exportDataAsJson(appData),
     addDay, addBucketList, deleteDay,
     renameDay, toggleVisited, deleteAttraction, sortAttractionsByPriority,
