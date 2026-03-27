@@ -4,6 +4,9 @@ import { loadData } from './store.js';
 
 export let currentUser = null;
 
+// BANDEIRA DE CONGELAMENTO DA TELA
+let acessoBloqueado = false; 
+
 // 🛑 A SUA LISTA VIP DE E-MAILS
 const emailsPermitidos = [
     'gilsonmarcondes@gmail.com',       // E-mail 1
@@ -15,11 +18,15 @@ export function initAuth(onSuccessCallback) {
     getRedirectResult(auth).catch((error) => console.error("Erro no login:", error));
 
     onAuthStateChanged(auth, (user) => {
+        // Se a tela já foi bloqueada, aborta qualquer tentativa de recarregar a página por cima
+        if (acessoBloqueado) return;
+
         if (user) {
             // VERIFICAÇÃO VIP
             if (!emailsPermitidos.includes(user.email)) {
+                acessoBloqueado = true; // Levanta a bandeira de congelamento!
                 
-                // Em vez de um alert(), desenhamos um Ecrã de Erro gigante na aplicação
+                // Desenha a Tela Vermelha
                 const app = document.getElementById('app');
                 if (app) {
                     app.innerHTML = `
@@ -28,32 +35,27 @@ export function initAuth(onSuccessCallback) {
                                 <span class="text-7xl mb-4 block">🚫</span>
                                 <h1 class="font-magic text-3xl text-red-700 mb-2 uppercase font-bold">Acesso Negado</h1>
                                 <p class="text-sm text-red-800 mb-8 font-mono">O e-mail <br><b class="text-blue-900">${user.email}</b><br> não está na lista VIP desta viagem.</p>
-                                <button onclick="window.location.reload()" class="w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-red-700 transition active:scale-95 uppercase tracking-widest text-xs">Tentar Outra Conta</button>
+                                <button onclick="window.location.reload()" class="w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-red-700 transition active:scale-95 uppercase tracking-widest text-xs">Voltar e Tentar Outro</button>
                             </div>
                         </div>`;
                 }
                 
-                // Esconde a barra de baixo por precaução
                 const nav = document.getElementById('bottomNav');
                 if (nav) nav.style.display = 'none';
 
-                // Faz o logout em segundo plano e interrompe o código
+                // Faz o logout (mas agora a tela não será recarregada porque acessoBloqueado = true)
                 signOut(auth);
                 return; 
             }
 
-            // Se passou na segurança, entra normalmente!
+            // Acesso Permitido
             currentUser = user; 
             console.log("Logado com sucesso:", user.displayName);
             if (onSuccessCallback) onSuccessCallback(); 
             
         } else {
             currentUser = null;
-            // Só desenha o ecrã de login normal se NÃO houver um erro vermelho na tela
-            const app = document.getElementById('app');
-            if (app && !app.innerHTML.includes('Acesso Negado')) {
-                if (window.render) window.render(); 
-            }
+            if (window.render) window.render(); 
         }
     });
 }
