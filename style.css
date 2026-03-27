@@ -225,3 +225,19 @@ input:focus, select:focus, textarea:focus {
 .bg-fuchsia-500 { background-color: #d946ef !important; }
 .bg-slate-500 { background-color: #64748b !important; }
 .bg-emerald-600 { background-color: #059669 !important; }
+
+/* Garante que o conteúdo apareça mesmo se a animação falhar */
+#app {
+    opacity: 1 !important;
+    display: block !important;
+}
+
+/* Define a animação de entrada que usamos no roteador */
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
