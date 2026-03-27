@@ -61,6 +61,7 @@ export function openAttractionModal(id = null) {
 }
 
 // 2. CRIAR LINHAS DE CUSTO
+// 2. CRIAR LINHAS DE CUSTO (Com visual corrigido)
 export function addTempCost(desc = '', value = '', currency = 'USD', paid = false) {
     const list = document.getElementById('tempCostList');
     if (!list) return;
@@ -69,19 +70,19 @@ export function addTempCost(desc = '', value = '', currency = 'USD', paid = fals
     
     const html = `
         <div class="flex items-center gap-2 bg-white p-2 border rounded shadow-sm cost-item mb-2">
-            <input type="text" placeholder="Ex: Bilhete" value="${desc}" class="cost-desc flex-1 p-1.5 border rounded text-xs">
-            <input type="number" placeholder="0.00" value="${value}" class="cost-val w-20 p-1.5 border rounded text-xs font-mono">
-            <select class="cost-cur p-1.5 border rounded bg-white text-xs">
+            <input type="text" placeholder="Ex: Bilhete" value="${desc}" class="cost-desc flex-1 min-w-[100px] p-1.5 border rounded text-xs">
+            <input type="number" placeholder="0.00" value="${value}" class="cost-val w-20 shrink-0 p-1.5 border rounded text-xs font-mono">
+            <select class="cost-cur w-16 shrink-0 p-1.5 border rounded bg-white text-xs">
                 <option value="USD" ${currency === 'USD' ? 'selected' : ''}>$</option>
                 <option value="EUR" ${currency === 'EUR' ? 'selected' : ''}>€</option>
                 <option value="GBP" ${currency === 'GBP' ? 'selected' : ''}>£</option>
                 <option value="BRL" ${currency === 'BRL' ? 'selected' : ''}>R$</option>
             </select>
-            <div class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border">
+            <div class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border shrink-0">
                 <input type="checkbox" class="cost-paid w-3 h-3 cursor-pointer" ${isChecked}>
                 <label class="text-[9px] uppercase font-bold text-gray-500 cursor-pointer">Pago</label>
             </div>
-            <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 font-bold px-1 text-lg">&times;</button>
+            <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 font-bold px-1 text-lg shrink-0">&times;</button>
         </div>
     `;
     list.insertAdjacentHTML('beforeend', html);
