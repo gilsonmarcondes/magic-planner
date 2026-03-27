@@ -20,7 +20,7 @@ import { openDayExtraModal, saveDayExtra, openChecklist, addCheckItem,
          deleteDocument, copyDocument, openSearchModal, performGlobalSearch,
          openMoveCopyModal, prepareMoveModal, confirmMoveCopy }              from './modals/misc.js';
 
-// Features
+// Features (Aqui estão as funções de Clima e Radar)
 import { openCitySearch, addLocation, removeLocation, fetchWeather,
          openFullDayRoute, calcInlineRoute, openGPSRoute,
          useMyLocation, initOriginAutocomplete, openRadarModal, scanRadar }  from './features/maps.js';
@@ -54,8 +54,7 @@ Object.assign(window, {
  
 function init() {
     console.log("🚀 Sistema: Iniciando motor principal...");
-    render(); 
-
+    
     initAuth(() => {
         console.log("✅ Usuário VIP detectado. Carregando dados...");
         try {
