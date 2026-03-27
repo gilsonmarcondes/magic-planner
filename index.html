@@ -295,5 +295,29 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="module" src="js/main.js?v=VITORIA_NA_UNESP"></script>
+
+    <div id="tripModal" class="modal hidden items-center justify-center z-50 fixed inset-0 bg-slate-900/70 backdrop-blur-sm">
+    <div class="modal-content w-full max-w-md bg-white rounded-lg shadow-2xl p-6 relative">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+            <h3 id="tripModalTitle" class="font-magic text-2xl text-[#0c4a6e] uppercase font-bold">Nova Viagem</h3>
+            <button onclick="window.closeModals()" class="text-gray-400 hover:text-red-500 text-2xl font-bold px-2">&times;</button>
+        </div>
+        <div class="space-y-4">
+            <input id="tripName" class="w-full p-2 border rounded" placeholder="Nome da Viagem (Ex: Londres 2026)">
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500">Início</label>
+                    <input id="tripStart" type="date" class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500">Fim</label>
+                    <input id="tripEnd" type="date" class="w-full p-2 border rounded">
+                </div>
+            </div>
+            <button onclick="window.saveTrip()" class="w-full bg-blue-600 text-white p-3 rounded font-bold shadow-lg hover:bg-blue-700 transition">Salvar Viagem</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
