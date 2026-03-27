@@ -4,6 +4,7 @@ import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } fr
 export let currentUser = null;
 export let authInitialized = false;
 
+// 🛑 LISTA VIP ÚNICA (Centralizada aqui)
 const VIP_LIST = [
     'gilsonmarcondes@gmail.com', 
     'gilson.marcondes@unesp.br',
@@ -11,10 +12,10 @@ const VIP_LIST = [
 ];
 
 export function initAuth(onSuccessCallback) {
-    console.log("🚀 Auth: Observador configurado.");
+    console.log("🚀 Auth: Aguardando sinal do Google...");
 
-    // Tenta capturar o resultado do redirect (importante para mobile)
-    getRedirectResult(auth).catch((error) => console.error("Erro redirect:", error));
+    // Captura o resultado do login após o redirecionamento
+    getRedirectResult(auth).catch((error) => console.error("Erro no login:", error));
 
     onAuthStateChanged(auth, (user) => {
         authInitialized = true;
@@ -22,19 +23,20 @@ export function initAuth(onSuccessCallback) {
         if (user) {
             const email = user.email.toLowerCase().trim();
             if (VIP_LIST.includes(email)) {
-                currentUser = user;
-                console.log("✅ Auth: Usuário VIP detectado:", email);
+                currentUser = user; // Utilizador VIP validado
+                console.log("✅ VIP Confirmado:", email);
                 if (onSuccessCallback) onSuccessCallback();
             } else {
-                console.warn("🚫 Auth: Usuário barrado:", email);
-                // Guardamos o email para mostrar no erro
-                currentUser = { status: "BARRADO", email: email }; 
+                console.warn("🚫 Não autorizado:", email);
+                // Criamos um marcador claro para o roteador
+                currentUser = { isBarrado: true, email: email }; 
             }
         } else {
-            console.log("👤 Auth: Nenhum usuário logado.");
+            console.log("👤 Nenhum utilizador detetado.");
             currentUser = null;
         }
 
+        // Avisa o roteador para atualizar a tela
         if (window.render) window.render();
     });
 }
