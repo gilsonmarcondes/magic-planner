@@ -4,7 +4,7 @@ import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } fr
 export let currentUser = null;
 export let authInitialized = false;
 
-// 🛑 LISTA VIP ÚNICA
+// 🛑 SUA LISTA VIP DEFINITIVA
 const VIP_LIST = [
     'gilsonmarcondes@gmail.com', 
     'gilson.marcondes@unesp.br',
@@ -12,31 +12,30 @@ const VIP_LIST = [
 ];
 
 export function initAuth(onSuccessCallback) {
-    console.log("🚀 Auth: Observador configurado.");
+    console.log("🚀 Auth: Observador iniciado.");
 
-    // Captura o resultado do redirect (essencial para telemóveis)
-    getRedirectResult(auth).catch((error) => console.error("Erro redirect:", error));
+    // Essencial para que o login funcione no telemóvel
+    getRedirectResult(auth).catch((error) => console.error("Erro no redirect:", error));
 
     onAuthStateChanged(auth, (user) => {
-        authInitialized = true;
+        authInitialized = true; // Avisa que o carregamento acabou
         
         if (user) {
             const email = user.email.toLowerCase().trim();
             if (VIP_LIST.includes(email)) {
                 currentUser = user;
-                console.log("✅ Auth: Usuário VIP detectado:", email);
+                console.log("✅ VIP Confirmado:", email);
                 if (onSuccessCallback) onSuccessCallback();
             } else {
-                console.warn("🚫 Auth: Usuário barrado:", email);
-                // Criamos um objeto claro para o roteador ler
+                console.warn("🚫 Acesso negado para:", email);
                 currentUser = { isBarrado: true, email: email }; 
             }
         } else {
-            console.log("👤 Auth: Nenhum usuário logado.");
+            console.log("👤 Nenhum usuário logado.");
             currentUser = null;
         }
 
-        // SEMPRE chama o render global para atualizar a tela
+        // Força a atualização da tela
         if (window.render) window.render();
     });
 }

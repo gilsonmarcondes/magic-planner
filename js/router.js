@@ -18,7 +18,7 @@ export function render() {
     const app = document.getElementById('app');
     if (!app) return;
 
-    // 1. ESTÁGIO DE CARREGAMENTO (Aguardando Firebase)
+    // 1. ESTÁGIO DE CARREGAMENTO
     if (!authInitialized) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh]">
@@ -28,7 +28,7 @@ export function render() {
         return;
     }
 
-    // 2. TELA DE LOGIN (Ninguém logado)
+    // 2. TELA DE LOGIN
     if (!currentUser) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
@@ -46,7 +46,7 @@ export function render() {
         return; 
     }
 
-    // 3. ACESSO INTERDITADO (Usuário logado mas não é VIP)
+    // 3. ACESSO NEGADO
     if (currentUser.isBarrado) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
@@ -66,7 +66,7 @@ export function render() {
         return; 
     }
 
-    // 4. ACESSO LIBERADO (Renderização das Páginas)
+    // 4. ACESSO LIBERADO (Renderização das Views)
     app.innerHTML = '';
     const scrollY = window.scrollY;
     
