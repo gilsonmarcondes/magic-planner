@@ -43,7 +43,7 @@ export function render() {
                     <h1 class="font-magic text-4xl text-[#0c4a6e] mb-2 uppercase font-bold">Magic Planner</h1>
                     <p class="text-sm text-gray-500 mb-8 font-mono">Organize suas aventuras de forma inteligente.</p>
                     
-                    <button onclick="window.loginUser()" class="w-full flex items-center justify-center gap-3 bg-white text-gray-700 font-bold py-3 px-4 rounded-xl shadow-md border border-gray-200 hover:bg-gray-50 hover:shadow-lg transition-all active:scale-95">
+                    <button onclick="if(window.loginUser){ window.loginUser(); } else { alert('Erro: A função de login não carregou no celular. O Main.js deve ter travado antes de chegar aqui.'); }" class="w-full flex items-center justify-center gap-3 bg-white text-gray-700 font-bold py-3 px-4 rounded-xl shadow-md border border-gray-200 hover:bg-gray-50 hover:shadow-lg transition-all active:scale-95">
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
                         Entrar com Google
                     </button>
