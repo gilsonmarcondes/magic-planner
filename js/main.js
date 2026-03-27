@@ -72,26 +72,41 @@ Object.assign(window, {
     generatePDF, generateDayPDF, generateCalendarPDF, generateVisitedKML, generateICS
 });
  
-// --- INICIALIZAÇÃO ---
+// --- INICIALIZAÇÃO CORRIGIDA ---
 function init() {
+    console.log("🚀 Sistema: Iniciando motor principal...");
+
+    // 1. Chamamos o render() imediatamente. 
+    // Como o auth ainda não terminou, o router.js vai mostrar 
+    // aquela bolinha azul de carregamento que criamos.
+    render();
+
+    // 2. Iniciamos a verificação de autenticação
     initAuth(() => {
+        // Este callback só roda se o usuário estiver LOGADO e for VIP
+        console.log("✅ Usuário VIP detectado. Carregando dados...");
+        
         try {
             loadData();
-            // Inicializa o Quill se o elemento existir
+
+            // Inicializa o editor Quill se necessário
             const editorEl = document.getElementById('attDescEditor');
             if (editorEl && typeof Quill !== 'undefined') {
                 const quill = new Quill('#attDescEditor', { theme: 'snow' });
                 setAttractionQuill(quill);
             }
             
+            // Verifica se deve ir para uma viagem específica ou para a Home
             const params = new URLSearchParams(window.location.search);
             const urlTrip = params.get('tripId');
             if (urlTrip) goTo('trip', urlTrip); else render();
+
         } catch (e) { 
-            console.error('Erro ao inicializar:', e); 
+            console.error('❌ Erro no carregamento de dados:', e); 
             render(); 
         }
     });
-}
 
-document.addEventListener('DOMContentLoaded', init);
+    // 3. Se após o initAuth o usuário NÃO estiver logado, 
+    // o próprio auth.js vai chamar o window.render() e mostrar a tela de login.
+}
