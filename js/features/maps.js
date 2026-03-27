@@ -91,3 +91,11 @@ export function openRadarModal() {
 export function scanRadar() {
     console.log("Escaneando área...");
 }
+
+// --- FUNÇÕES DO RADAR (Necessárias para o main.js) ---
+export function openRadarModal() {
+    alert("📡 O Radar de Atrações está sendo calibrado! Em breve você poderá localizar pontos de interesse próximos.");
+}
+export function scanRadar() {
+    console.log("Escaneando área...");
+}
