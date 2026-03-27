@@ -1,5 +1,5 @@
 // --- FEATURE: MAPS & WEATHER ---
-import { appData, currentState, saveData, currentInlineModes, setCurrentInlineModes } from '../store.js';
+import { appData, currentState, saveData, currentInlineModes } from '../store.js';
 import { OPENWEATHER_API_KEY } from '../config.js';
 
 let cityAutocompleteInstance = null;
@@ -56,7 +56,9 @@ export async function fetchWeather() {
         if (diffDias > 5) {
             const dataLib = new Date(dataViagem);
             dataLib.setDate(dataLib.getDate() - 5);
-            return alert(`📅 Cedo demais! Previsão para ${d.locations[0].name.split(',')[0]} disponível a partir de ${dataLib.toLocaleDateString('pt-BR')}.`);
+            return alert(`📅 Previsão disponível a partir de ${dataLib.toLocaleDateString('pt-BR')}.`);
+        } else if (diffDias < 0) {
+            return alert(`⏳ Esse dia já passou!`);
         }
     }
 
@@ -72,30 +74,75 @@ export async function fetchWeather() {
             proximas24h.forEach(item => {
                 const temp = Math.round(item.main.temp);
                 const icon = `https://openweathermap.org/img/wn/${item.weather[0].icon}.png`;
-                html += `<div class="flex flex-col items-center bg-white/60 rounded-lg p-2 min-w-[65px]">
-                            <span class="text-[11px] font-bold text-slate-800">${temp}°</span>
-                            <img src="${icon}" class="w-8 h-8">
-                         </div>`;
+                html += `
+                    <div class="flex flex-col items-center bg-white/60 rounded-lg p-2 min-w-[65px]">
+                        <span class="text-[11px] font-bold text-slate-800">${temp}°</span>
+                        <img src="${icon}" class="w-8 h-8">
+                    </div>`;
             });
             html += `</div>`;
             d.weather = html;
             await saveData();
             window.render();
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error('Erro clima:', e); }
 }
 
-export function openFullDayRoute() { /* Lógica de rota omitida */ }
-export function initOriginAutocomplete(id) { /* Lógica autocomplete */ }
-export function calcInlineRoute(id) { /* Lógica rota inline */ }
-export function openGPSRoute(id) { /* Lógica GPS */ }
-export function useMyLocation(id) { /* Lógica localização */ }
+export function openFullDayRoute() {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    const d = t.days.find(x => x.id === currentState.dayId);
+    const waypoints = d.attractions.map(a => a.address).filter(a => !!a);
+    if (waypoints.length < 2) return alert('Faltam endereços para traçar a rota.');
+    const origin = waypoints.shift();
+    const destination = waypoints.pop();
+    const wpString = waypoints.length > 0 ? `&waypoints=${waypoints.map(encodeURIComponent).join('|')}` : '';
+    window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${wpString}&travelmode=walking`, '_blank');
+}
 
-// --- 📡 FUNÇÕES DO RADAR (DEFINIDAS APENAS UMA VEZ AQUI) ---
+export function initOriginAutocomplete(id) {
+    if (!window.google) return;
+    const input = document.getElementById(`origin-${id}`);
+    if (input && !input.dataset.autocompleteBound) {
+        new google.maps.places.Autocomplete(input);
+        input.dataset.autocompleteBound = "true";
+    }
+}
+
+export function calcInlineRoute(id) {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    const d = t.days.find(x => x.id === currentState.dayId);
+    const a = d.attractions.find(x => String(x.id) === String(id));
+    const origin = document.getElementById(`origin-${id}`).value;
+    if (!origin || !a.address) return alert('Preencha origem e destino.');
+    const frame = document.getElementById(`map-frame-${id}`);
+    const container = document.getElementById(`map-container-${id}`);
+    const apiKey = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]').src.match(/key=([^&]+)/)[1];
+    frame.src = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&mode=walking`;
+    container.classList.remove('hidden');
+}
+
+export function openGPSRoute(id) {
+    const t = appData.trips.find(x => x.id === currentState.tripId);
+    const d = t.days.find(x => x.id === currentState.dayId);
+    const a = d.attractions.find(x => String(x.id) === String(id));
+    const origin = document.getElementById(`origin-${id}`).value || 'My Location';
+    window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(a.address)}&travelmode=walking`, '_blank');
+}
+
+export function useMyLocation(id) {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const input = document.getElementById(`origin-${id}`);
+            if (input) input.value = `${pos.coords.latitude},${pos.coords.longitude}`;
+        });
+    }
+}
+
+// --- 📡 FUNÇÕES DO RADAR (Apenas uma declaração aqui) ---
 export function openRadarModal() {
-    alert("📡 O Radar de Atrações está sendo calibrado! Em breve você poderá localizar pontos próximos.");
+    alert("📡 O Radar de Atrações está sendo calibrado para sua viagem!");
 }
 
 export function scanRadar() {
-    console.log("Escaneando área...");
+    console.log("Escaneando área próxima...");
 }
