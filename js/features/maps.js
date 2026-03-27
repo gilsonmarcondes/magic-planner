@@ -42,14 +42,22 @@ export async function removeLocation(name) {
 }
 
 // 🌦️ NOVA FUNÇÃO DE CLIMA: Previsão a cada 3 horas!
+// 🌦️ FUNÇÃO DE CLIMA ATUALIZADA (Com trava de data)
 export async function fetchWeather() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
+    
     if (!d.locations || d.locations.length === 0) return alert('Adicione uma cidade primeiro.');
 
+    // --- NOVA TRAVA DE SEGURANÇA ---
+    const hoje = new Date().toISOString().split('T')[0]; // Pega a data de hoje (YYYY-MM-DD)
+    const dataViagem = d.date; // Assume que seu objeto de dia tem o campo .date
+
+    if (dataViagem && dataViagem !== hoje) {
+        return alert(`📅 Previsão indisponível. A API gratuita só mostra o clima para as próximas 24h. Volte a consultar quando estiver em ${d.locations[0].name.split(',')[0]}!`);
+    }
+
     const city = d.locations[0].name.split(',')[0];
-    
-    // Mudamos de "weather" para "forecast"
     const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=pt_br`;
 
     try {
@@ -57,10 +65,7 @@ export async function fetchWeather() {
         const data = await res.json();
         
         if (data.list) {
-            // Pega apenas as próximas 24 horas (8 blocos de 3 horas)
             const proximas24h = data.list.slice(0, 8);
-            
-            // Monta o Carrossel visual de previsão
             let html = `<div class="flex overflow-x-auto gap-2 py-2 mt-2" style="scrollbar-width: none; -ms-overflow-style: none;">`;
             
             proximas24h.forEach(item => {
@@ -80,12 +85,11 @@ export async function fetchWeather() {
             });
             html += `</div>`;
 
-            // Salva o carrossel no banco para ser renderizado na tela do dia
             d.weather = html;
             await saveData();
             window.render();
         } else {
-            alert('Não foi possível carregar a previsão. Verifique se a cidade está correta.');
+            alert('Cidade não encontrada ou erro na API.');
         }
     } catch (e) { 
         console.error('Erro clima:', e); 
