@@ -12,12 +12,19 @@ export function renderTrip(container, tripId) {
 
     let html = `
         <div class="p-4 max-w-5xl mx-auto pb-24 animate-fade-in">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-between items-center mb-4">
                 <button onclick="window.goTo('home')" class="bg-white border px-4 py-2 rounded-lg text-sm font-bold shadow-sm text-slate-600 hover:bg-gray-50 transition">⬅ Voltar</button>
                 <h2 class="text-3xl font-magic font-bold text-[#0c4a6e] uppercase text-center">${t.name}</h2>
                 <button onclick="window.openTripModal('${t.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 px-3 py-2 rounded-lg font-bold text-sm transition">✏️ Editar</button>
             </div>
             
+            <div class="flex flex-wrap justify-center gap-2 mb-8 border-b border-[#d4af37]/30 pb-4">
+                <button class="bg-[#0c4a6e] text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md flex items-center gap-2">🗺️ Roteiro</button>
+                <button onclick="window.openHotelManager()" class="bg-white border border-[#0c4a6e] text-[#0c4a6e] px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-50 transition flex items-center gap-2">🏨 Hotéis</button>
+                <button onclick="window.openChecklist()" class="bg-white border border-[#0c4a6e] text-[#0c4a6e] px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-50 transition flex items-center gap-2">✅ Checklist</button>
+                <button onclick="window.openDocumentsModal()" class="bg-white border border-[#0c4a6e] text-[#0c4a6e] px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-50 transition flex items-center gap-2">📄 Documentos</button>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     `;
 
@@ -41,8 +48,10 @@ export function renderTrip(container, tripId) {
 
     html += `
             </div>
+            
             <div class="mt-8 flex justify-center gap-4">
                 <button onclick="window.addDay()" class="bg-[#0c4a6e] text-white px-6 py-3 rounded-lg font-bold shadow-md hover:bg-[#073654] transition">+ Adicionar Dia Extra</button>
+                <button onclick="window.addBucketList()" class="bg-amber-500 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:bg-amber-600 transition">📝 Bucket List</button>
             </div>
         </div>
     `;
@@ -84,54 +93,5 @@ export async function deleteDay(dayId) {
 }
 
 export async function addBucketList() {
-    console.log("Bucket List a implementar.");
-}
-
-// --- FUNÇÕES DO MODAL DE NOVA VIAGEM ---
-let editingTripId = null;
-
-export function openTripModal(id = null) {
-    editingTripId = id;
-    const modal = document.getElementById('tripModal');
-    if(!modal) return;
-    const t = id ? appData.trips.find(x => x.id === id) : null;
-
-    document.getElementById('tripModalTitle').innerText = t ? 'Editar Viagem' : 'Nova Viagem';
-    document.getElementById('tripName').value = t ? t.name : '';
-    document.getElementById('tripStart').value = t ? t.startDate : '';
-    document.getElementById('tripEnd').value = t ? t.endDate : '';
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-export async function saveTrip() {
-    const name = document.getElementById('tripName').value.trim();
-    const start = document.getElementById('tripStart').value;
-    const end = document.getElementById('tripEnd').value;
-
-    if (!name || !start || !end) return alert('Por favor, preencha todos os campos!');
-
-    if (editingTripId) {
-        const tripData = appData.trips.find(x => x.id === editingTripId);
-        tripData.name = name; tripData.startDate = start; tripData.endDate = end;
-    } else {
-        const tripData = {
-            id: Math.random().toString(36).substr(2, 9),
-            name, startDate: start, endDate: end, days: [], hotels: [], extraCosts: [], rates: { USD: 0, EUR: 0, GBP: 0 }
-        };
-        let current = new Date(start + 'T00:00:00');
-        const last = new Date(end + 'T00:00:00');
-        while (current <= last) {
-            tripData.days.push({
-                id: Math.random().toString(36).substr(2, 9),
-                date: current.toISOString().split('T')[0], locations: [], attractions: [], transport: [], extraCosts: [], isBucket: false
-            });
-            current.setDate(current.getDate() + 1);
-        }
-        appData.trips.push(tripData);
-    }
-    await saveData();
-    closeModals();
-    render();
+    alert("📝 Funcionalidade do Bucket List pronta para ser configurada!");
 }
