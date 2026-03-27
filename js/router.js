@@ -18,7 +18,7 @@ export function render() {
     const app = document.getElementById('app');
     if (!app) return;
 
-    // 1. ESTÁGIO DE CARREGAMENTO
+    // 1. ESTÁGIO DE CARREGAMENTO (Espera o authInitialized virar TRUE)
     if (!authInitialized) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh]">
@@ -28,7 +28,7 @@ export function render() {
         return;
     }
 
-    // 2. TELA DE LOGIN
+    // 2. TELA DE LOGIN (Se não houver usuário)
     if (!currentUser) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
@@ -46,7 +46,7 @@ export function render() {
         return; 
     }
 
-    // 3. ACESSO NEGADO
+    // 3. ACESSO NEGADO (Se o e-mail não for VIP)
     if (currentUser.isBarrado) {
         app.innerHTML = `
             <div class="flex flex-col justify-center items-center min-h-[80vh] px-4 animate-fade-in">
@@ -66,25 +66,15 @@ export function render() {
         return; 
     }
 
-    // 4. ACESSO LIBERADO (Renderização das Views)
+    // 4. ACESSO LIBERADO (Renderização normal)
     app.innerHTML = '';
     const scrollY = window.scrollY;
     
     switch (currentState.page) {
-        case 'home': 
-            import('./views/home.js').then(m => m.renderHome(app)); 
-            break;
-        case 'trip': 
-            import('./views/trip.js').then(m => m.renderTrip(app, currentState.tripId)); 
-            break;
-        case 'day':  
-            import('./views/day.js').then(m => { 
-                m.renderDay(app, currentState.tripId, currentState.dayId); 
-                requestAnimationFrame(() => window.scrollTo(0, scrollY)); 
-            }); 
-            break;
-        default:     
-            import('./views/home.js').then(m => m.renderHome(app));
+        case 'home': import('./views/home.js').then(m => m.renderHome(app)); break;
+        case 'trip': import('./views/trip.js').then(m => m.renderTrip(app, currentState.tripId)); break;
+        case 'day':  import('./views/day.js').then(m => { m.renderDay(app, currentState.tripId, currentState.dayId); requestAnimationFrame(() => window.scrollTo(0, scrollY)); }); break;
+        default:     import('./views/home.js').then(m => m.renderHome(app));
     }
 
     const nav = document.getElementById('bottomNav');

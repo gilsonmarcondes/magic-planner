@@ -14,7 +14,7 @@ const VIP_LIST = [
 export function initAuth(onSuccessCallback) {
     console.log("🚀 Auth: Observador iniciado.");
 
-    // Essencial para que o login funcione no telemóvel
+    // Essencial para que o login funcione no celular
     getRedirectResult(auth).catch((error) => console.error("Erro no redirect:", error));
 
     onAuthStateChanged(auth, (user) => {
@@ -35,7 +35,7 @@ export function initAuth(onSuccessCallback) {
             currentUser = null;
         }
 
-        // Força a atualização da tela
+        // Força a atualização da tela no roteador
         if (window.render) window.render();
     });
 }

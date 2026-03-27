@@ -4,19 +4,18 @@ import { render, goTo, openTrip, openDay }   from './router.js';
 import { exportDataAsJson, closeModals }     from './utils.js';
 import { initAuth, loginUser, logoutUser } from './auth.js';
 
-// Importação das Views e Modals (Mantenha todos os seus outros imports aqui)
-// ...
+// ... (Mantenha todas as suas outras importações de Views, Modals e Features aqui) ...
 
 // --- EXPOSIÇÃO GLOBAL ---
 Object.assign(window, {
     loginUser, logoutUser, goTo, openTrip, openDay, render, closeModals,
-    // (Adicione todas as suas outras funções aqui como você já tinha feito)
+    // (Adicione aqui todas as outras funções que você já tinha exposto)
 });
  
 // --- INICIALIZAÇÃO ---
 function init() {
     console.log("🚀 Sistema: Iniciando motor principal...");
-    render(); // Inicia o carregamento
+    render(); // Inicia o carregamento imediatamente
 
     initAuth(() => {
         console.log("✅ VIP detectado. Carregando dados...");
