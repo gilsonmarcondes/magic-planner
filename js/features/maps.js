@@ -1,5 +1,5 @@
 // --- FEATURE: MAPS & WEATHER ---
-import { appData, currentState, saveData, currentInlineModes } from '../store.js';
+import { appData, currentState, saveData, currentInlineModes, setCurrentInlineModes } from '../store.js';
 import { OPENWEATHER_API_KEY } from '../config.js';
 
 let cityAutocompleteInstance = null;
@@ -7,19 +7,26 @@ let cityAutocompleteInstance = null;
 export function openCitySearch() {
     const modal = document.getElementById('citySearchModal');
     if (modal) modal.classList.remove('hidden');
+    
     if (!cityAutocompleteInstance && window.google) {
         const input = document.getElementById('citySearchInput');
-        if (input) cityAutocompleteInstance = new google.maps.places.Autocomplete(input, { types: ['(cities)'] });
+        if (input) {
+            cityAutocompleteInstance = new google.maps.places.Autocomplete(input, { types: ['(cities)'] });
+        }
     }
 }
 
 export async function addLocation() {
     const input = document.getElementById('citySearchInput');
-    if (!input?.value) return;
+    const cityName = input?.value;
+    if (!cityName) return;
+
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
+    
     if (!d.locations) d.locations = [];
-    d.locations.push({ name: input.value });
+    d.locations.push({ name: cityName });
+    
     input.value = '';
     await saveData();
     window.render();
@@ -33,15 +40,16 @@ export async function removeLocation(name) {
     window.render();
 }
 
-// 🌦️ FUNÇÃO DE CLIMA (Com Trava de 5 dias para Abril/2026)
+// 🌦️ FUNÇÃO DE CLIMA (Com Trava de 5 dias para sua viagem em Abril)
 export async function fetchWeather() {
     const t = appData.trips.find(x => x.id === currentState.tripId);
     const d = t.days.find(x => x.id === currentState.dayId);
+    
     if (!d.locations || d.locations.length === 0) return alert('Adicione uma cidade primeiro.');
 
     if (d.date) {
         const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
+        hoje.setHours(0, 0, 0, 0); 
         const dataViagem = new Date(d.date + "T00:00:00");
         const diffDias = Math.ceil((dataViagem - hoje) / (1000 * 60 * 60 * 24));
 
@@ -77,25 +85,17 @@ export async function fetchWeather() {
     } catch (e) { console.error(e); }
 }
 
-// Funções de Mapa e GPS
-export function openFullDayRoute() { /* Lógica de rota omitida para brevidade */ }
-export function initOriginAutocomplete(id) { /* Lógica autocomplete omitida */ }
-export function calcInlineRoute(id) { /* Lógica rota inline omitida */ }
-export function openGPSRoute(id) { /* Lógica GPS omitida */ }
-export function useMyLocation(id) { /* Lógica localização omitida */ }
+export function openFullDayRoute() { /* Lógica de rota omitida */ }
+export function initOriginAutocomplete(id) { /* Lógica autocomplete */ }
+export function calcInlineRoute(id) { /* Lógica rota inline */ }
+export function openGPSRoute(id) { /* Lógica GPS */ }
+export function useMyLocation(id) { /* Lógica localização */ }
 
-// --- 📡 FUNÇÕES DO RADAR (Essenciais para o main.js) ---
+// --- 📡 FUNÇÕES DO RADAR (DEFINIDAS APENAS UMA VEZ AQUI) ---
 export function openRadarModal() {
     alert("📡 O Radar de Atrações está sendo calibrado! Em breve você poderá localizar pontos próximos.");
 }
-export function scanRadar() {
-    console.log("Escaneando área...");
-}
 
-// --- FUNÇÕES DO RADAR (Necessárias para o main.js) ---
-export function openRadarModal() {
-    alert("📡 O Radar de Atrações está sendo calibrado! Em breve você poderá localizar pontos de interesse próximos.");
-}
 export function scanRadar() {
     console.log("Escaneando área...");
 }
