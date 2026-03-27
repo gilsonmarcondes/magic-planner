@@ -4,12 +4,7 @@ import { signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } fr
 export let currentUser = null;
 export let authInitialized = false;
 
-// 🛑 LISTA VIP ÚNICA
-const VIP_LIST = [
-    'gilsonmarcondes@gmail.com', 
-    'gilson.marcondes@unesp.br',
-    'amigo2@gmail.com'
-];
+const VIP_LIST = ['gilsonmarcondes@gmail.com', 'gilson.marcondes@unesp.br'];
 
 export function initAuth(onSuccessCallback) {
     console.log("🚀 Auth: Observador iniciado.");
@@ -21,15 +16,14 @@ export function initAuth(onSuccessCallback) {
             const email = user.email.toLowerCase().trim();
             if (VIP_LIST.includes(email)) {
                 currentUser = user;
-                console.log("✅ Auth: Usuário VIP detectado:", email);
+                console.log("✅ VIP Confirmado:", email);
                 if (onSuccessCallback) onSuccessCallback();
             } else {
-                console.warn("🚫 Auth: Usuário barrado:", email);
                 currentUser = { isBarrado: true, email: email }; 
             }
         } else {
-            console.log("👤 Auth: Nenhum usuário logado.");
             currentUser = null;
+            console.log("👤 Nenhum usuário logado.");
         }
         if (window.render) window.render();
     });

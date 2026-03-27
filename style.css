@@ -271,3 +271,19 @@ input:focus, select:focus, textarea:focus {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Garante que o conteúdo seja visível imediatamente */
+#app {
+    opacity: 1 !important;
+    display: block !important;
+}
+
+/* Define a animação de entrada que o roteador usa */
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
